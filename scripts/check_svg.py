@@ -22,6 +22,10 @@ check_svg.py —— 内嵌 SVG 的三合一校验（浏览器里"能看"不等�
 斜线一律跳过。`<path>` 也只解析绝对指令 M/H/V/L，含相对指令的一律放弃解析
 （本项目不产生这种写法）。避开误报的做法见 `_crosses()` 的注释。
 
+④ **只把"有填充的 rect"当方框**。虚线边界框（`fill:none`，表示"这一圈之内是顶层内部"）
+不是障碍物，连线本来就该穿过它，否则外部信号进不来。
+判据同样是从样式表解析出的 **fill 值**，不是类名白名单——见 `_fill_of()`。
+
 用法：
     python scripts/check_svg.py docs/图/系统图.html
     python scripts/check_svg.py docs/图/*.html  *.svg
@@ -51,7 +55,7 @@ def extract_svgs(text):
 
 def parse_css_classes(text):
     """
-    解析 <style> 块，返回 {类名: {该类的规则里声明过的属性名}}
+    解析 <style> 块，返回 {类名: {属性名: 属性值}}
 
     只取"主体选择器"（逗号分组的最后一段复合选择器）里的类名：
     `.canvas svg` 的宽度是加在 svg 上的，不能算到 .canvas 头上。
@@ -60,18 +64,37 @@ def parse_css_classes(text):
     for block in re.findall(r"<style[^>]*>(.*?)</style>", text, re.S):
         block = re.sub(r"/\*.*?\*/", "", block, flags=re.S)   # 去 CSS 注释
         for sel_group, body in re.findall(r"([^{}]+)\{([^{}]*)\}", block):
-            declared = set()
+            declared = {}
             for decl in body.split(";"):
                 if ":" in decl:
-                    declared.add(decl.split(":", 1)[0].strip().lower())
+                    k, v = decl.split(":", 1)
+                    declared[k.strip().lower()] = v.strip()
             if not declared:
                 continue
             for sel in sel_group.split(","):
                 parts = re.split(r"[\s>+~]+", sel.strip())
                 subject = parts[-1] if parts else ""
                 for name in re.findall(r"\.([A-Za-z_][\w-]*)", subject):
-                    props.setdefault(name, set()).update(declared)
+                    props.setdefault(name, {}).update(declared)
     return props
+
+
+def _fill_of(el, css):
+    """
+    元素最终生效的 fill 值（小写），解析不出来返回 None。
+    优先级：行内 style > CSS 类 > fill= 表现属性。
+    """
+    v = el.attrib.get("fill")
+    v = v.strip().lower() if v is not None else None
+    for c in el.get("class", "").split():
+        if "fill" in css.get(c, {}):
+            v = css[c]["fill"].strip().lower()
+    for decl in el.get("style", "").split(";"):
+        if ":" in decl:
+            k, val = decl.split(":", 1)
+            if k.strip().lower() == "fill":
+                v = val.strip().lower()
+    return v
 
 
 def _segments(el):
@@ -188,7 +211,7 @@ def check(path):
             # 该元素最终被声明了哪些属性：CSS 类 + 行内 style
             declared = set()
             for c in cls:
-                declared |= css.get(c, set())
+                declared |= set(css.get(c, {}))
             declared |= {d.split(":", 1)[0].strip().lower()
                          for d in style.split(";") if ":" in d}
 
@@ -211,7 +234,9 @@ def check(path):
                     )
 
     # ---------- ④ 走线是否横穿方框 ----------
-    MIN_W, MIN_H = 50.0, 30.0        # 只把够大的 rect 当"方框"，图例小方块不参与
+    # 只有"有填充的 rect"算方框：图例小色块太小不参与（MIN_W/MIN_H），
+    # 虚线边界框 fill:none 是"区域"不是"障碍"，连线穿过它本来就是对的。
+    MIN_W, MIN_H = 50.0, 30.0
     for i, sv in enumerate(svgs, 1):
         try:
             root = ET.fromstring(sv)
@@ -227,8 +252,12 @@ def check(path):
                 w, h = float(el.get("width")), float(el.get("height"))
             except (TypeError, ValueError):
                 continue
-            if w >= MIN_W and h >= MIN_H:
-                boxes.append((x, y, w, h, el.get("class", "—")))
+            if w < MIN_W or h < MIN_H:
+                continue
+            fill = _fill_of(el, css)
+            if fill == "none" or fill == "transparent":
+                continue                 # 边界/区域框，允许被穿过
+            boxes.append((x, y, w, h, el.get("class", "—")))
 
         for el in root.iter():
             if local(el.tag) not in ("line", "path"):

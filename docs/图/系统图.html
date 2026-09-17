@@ -151,7 +151,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
       <span>时钟 <b>50 MHz</b></span>
       <span>第一层 <b>7 个子系统</b></span>
       <span>第二层 <b>11 个实体</b></span>
-      <span>版本 <b>v2 · 2026-09-17</b></span>
+      <span>版本 <b>v3 · 2026-09-17</b></span>
     </div>
   </header>
 
@@ -160,11 +160,11 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
     <div class="titleblock">
       <span class="dwg">DWG-01</span>
       <span class="nm">系统总体框图 · 第一层（功能子系统）</span>
-      <span class="rev">比例 N/A · 共 3 图 · 第 1 图</span>
+      <span class="rev">布局取自飞书白板稿 · 共 3 图 · 第 1 图</span>
     </div>
 
     <div class="canvas">
-      <svg viewBox="0 0 1460 780" role="img" aria-label="拼图游戏系统总体框图，功能子系统级">
+      <svg viewBox="0 0 1700 1180" role="img" aria-label="拼图游戏系统总体框图，功能子系统级">
         <defs>
           <marker id="b1" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
             <path d="M0,0 L10,5 L0,10 z" fill="#4A4844"/>
@@ -172,115 +172,135 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
           <marker id="b2" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
             <path d="M0,0 L10,5 L0,10 z" fill="#8A5A00"/>
           </marker>
+          <marker id="b3" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#9A6206"/>
+          </marker>
         </defs>
 
-        <!-- ·········· 时钟与节拍 ·········· -->
-        <rect x="560" y="30" width="340" height="66" rx="3" class="dg-time"/>
-        <text x="730" y="52" class="dg-name" text-anchor="middle">时钟与节拍</text>
-        <text x="730" y="70" class="dg-ent" text-anchor="middle">clk_gen</text>
-        <text x="730" y="87" class="dg-sub" text-anchor="middle">50 MHz → 5 档单周期使能 + 上电复位</text>
+        <!-- ·········· 内部边界：puzzle_top 之内（虚线框＝边界，不是模块） ·········· -->
+        <rect x="150" y="190" width="1450" height="930" rx="10" class="dg-region"/>
+        <text x="170" y="216" class="dg-lbl">puzzle_top 内部 · 7 个功能子系统</text>
 
-        <line x1="520" y1="63" x2="560" y2="63" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="546" y="55" class="dg-io" text-anchor="end">sw7</text>
+        <!-- ·········· 时钟与节拍（画成椭圆，与方框模块区分：它只有扇出、没有数据流） ·········· -->
+        <ellipse cx="875" cy="265" rx="80" ry="48" class="dg-time"/>
+        <text x="875" y="258" class="dg-name" text-anchor="middle">时钟与节拍</text>
+        <text x="875" y="280" class="dg-ent" text-anchor="middle">clk_gen</text>
 
-        <path d="M730,96 V140" class="dg-rail"/>
-        <line x1="100" y1="140" x2="1230" y2="140" class="dg-rail"/>
-        <text x="104" y="132" class="dg-lbl">节拍总线 · tick_8k · tick_1k · tick_100 · tick_2hz · tick_1hz · rst</text>
+        <line x1="60" y1="245" x2="803" y2="245" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="70" y="237" class="dg-io">sw7 系统开关</text>
+        <line x1="60" y1="285" x2="803" y2="285" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="70" y="277" class="dg-io">clk 50 MHz</text>
 
-        <!-- 节拍扇出（橙线＝节拍，与数据线区分） -->
-        <line x1="165" y1="140" x2="165" y2="240" class="dg-tap" marker-end="url(#b1)"/>
-        <line x1="430" y1="140" x2="430" y2="240" class="dg-tap" marker-end="url(#b1)"/>
-        <line x1="710" y1="140" x2="710" y2="240" class="dg-tap" marker-end="url(#b1)"/>
-        <line x1="985" y1="140" x2="985" y2="240" class="dg-tap" marker-end="url(#b1)"/>
-        <path d="M860,140 V430 H760 V470" class="dg-tap" marker-end="url(#b1)"/>
-        <line x1="1250" y1="140" x2="1250" y2="470" class="dg-tap" marker-end="url(#b1)"/>
+        <path d="M875,313 V360" class="dg-rail"/>
+        <line x1="245" y1="360" x2="1585" y2="360" class="dg-rail"/>
+        <text x="250" y="352" class="dg-lbl">clk 与节拍总线 · tick_8k · tick_1k · tick_100 · tick_2hz · tick_1hz</text>
 
-        <!-- ·········· 第一层：七个功能子系统 ·········· -->
-        <rect x="70" y="240" width="190" height="88" rx="3" class="dg-driver"/>
-        <text x="165" y="266" class="dg-name" text-anchor="middle">键盘输入</text>
-        <text x="165" y="287" class="dg-ent" text-anchor="middle">keypad_scan</text>
-        <text x="165" y="307" class="dg-sub" text-anchor="middle">tick_1k · 20ms 消抖</text>
+        <!-- 节拍扇出：橙线＝时钟/节拍，与黑色数据线区分开 -->
+        <line x1="265" y1="360" x2="265" y2="430" class="dg-tap" marker-end="url(#b3)"/>
+        <line x1="610" y1="360" x2="610" y2="430" class="dg-tap" marker-end="url(#b3)"/>
+        <line x1="1120" y1="360" x2="1120" y2="430" class="dg-tap" marker-end="url(#b3)"/>
+        <line x1="1380" y1="360" x2="1380" y2="430" class="dg-tap" marker-end="url(#b3)"/>
+        <!-- 注意：这里**没有**引一条节拍到「图案与随机数据」。
+             pattern_rom / piece_rom 是纯组合，rng_lfsr 由 puzzle_ctrl 的 rnd_step
+             请求推进——它接的是原始 clk，不是任何一档节拍。
+             若接成节拍，同一 tick 内多次落位尝试会读到同一个随机数（CLAUDE.md §10.1 的坑）。 -->
+        <path d="M1580,360 V960 H1455 V990" class="dg-tap" marker-end="url(#b3)"/>
 
-        <rect x="330" y="240" width="200" height="88" rx="3" class="dg-time"/>
-        <text x="430" y="266" class="dg-name" text-anchor="middle">游戏控制</text>
-        <text x="430" y="287" class="dg-ent" text-anchor="middle">game_fsm</text>
-        <text x="430" y="307" class="dg-sub" text-anchor="middle">状态机 · 倒计时 · 关卡</text>
+        <!-- ·········· 第一层：7 个功能子系统 ·········· -->
+        <rect x="170" y="430" width="190" height="115" rx="3" class="dg-driver"/>
+        <text x="265" y="466" class="dg-name" text-anchor="middle">键盘输入</text>
+        <text x="265" y="490" class="dg-ent" text-anchor="middle">keypad_scan</text>
+        <text x="265" y="514" class="dg-sub" text-anchor="middle">tick_1k · 20ms 消抖</text>
 
-        <rect x="610" y="240" width="200" height="88" rx="3" class="dg-data"/>
-        <text x="710" y="266" class="dg-name" text-anchor="middle">拼图核心</text>
-        <text x="710" y="287" class="dg-ent" text-anchor="middle">puzzle_ctrl</text>
-        <text x="710" y="307" class="dg-sub" text-anchor="middle">锚点 · 钳位 · 锁定 · 判定</text>
+        <rect x="555" y="430" width="210" height="115" rx="3" class="dg-time"/>
+        <text x="660" y="466" class="dg-name" text-anchor="middle">游戏控制</text>
+        <text x="660" y="490" class="dg-ent" text-anchor="middle">game_fsm</text>
+        <text x="660" y="514" class="dg-sub" text-anchor="middle">状态机 · 倒计时 · 关卡</text>
 
-        <rect x="880" y="240" width="210" height="88" rx="3" class="dg-driver"/>
-        <text x="985" y="264" class="dg-name" text-anchor="middle">显示子系统</text>
-        <text x="985" y="283" class="dg-ent" text-anchor="middle">disp_format · seg_scan</text>
-        <text x="985" y="300" class="dg-ent" text-anchor="middle">dot_matrix_scan</text>
-        <text x="985" y="317" class="dg-sub" text-anchor="middle">tick_1k · 消隐防鬼影</text>
+        <rect x="935" y="430" width="215" height="115" rx="3" class="dg-data"/>
+        <text x="1042" y="466" class="dg-name" text-anchor="middle">拼图核心</text>
+        <text x="1042" y="490" class="dg-ent" text-anchor="middle">puzzle_ctrl</text>
+        <text x="1042" y="514" class="dg-sub" text-anchor="middle">锚点 · 钳位 · 锁定 · 判定</text>
 
-        <rect x="610" y="470" width="200" height="96" rx="3" class="dg-data"/>
-        <text x="710" y="500" class="dg-name" text-anchor="middle">图案与随机数据</text>
-        <text x="710" y="521" class="dg-ent" text-anchor="middle">pattern_rom · piece_rom</text>
-        <text x="710" y="540" class="dg-ent" text-anchor="middle">rng_lfsr</text>
+        <rect x="1290" y="430" width="250" height="115" rx="3" class="dg-driver"/>
+        <text x="1415" y="458" class="dg-name" text-anchor="middle">显示子系统</text>
+        <text x="1415" y="481" class="dg-ent" text-anchor="middle">disp_format · seg_scan</text>
+        <text x="1415" y="499" class="dg-ent" text-anchor="middle">dot_matrix_scan</text>
+        <text x="1415" y="521" class="dg-sub" text-anchor="middle">tick_1k · 消隐防鬼影</text>
 
-        <rect x="1090" y="470" width="180" height="88" rx="3" class="dg-driver"/>
-        <text x="1180" y="498" class="dg-name" text-anchor="middle">音效输出</text>
-        <text x="1180" y="519" class="dg-ent" text-anchor="middle">buzzer_ctrl</text>
-        <text x="1180" y="539" class="dg-sub" text-anchor="middle">tick_8k · 8 种音效</text>
+        <rect x="930" y="730" width="250" height="135" rx="3" class="dg-data"/>
+        <text x="1055" y="772" class="dg-name" text-anchor="middle">图案与随机数据</text>
+        <text x="1055" y="798" class="dg-ent" text-anchor="middle">pattern_rom · piece_rom</text>
+        <text x="1055" y="818" class="dg-ent" text-anchor="middle">rng_lfsr</text>
+        <text x="1055" y="844" class="dg-sub" text-anchor="middle">两个 ROM 纯组合 · rng 按请求推进</text>
+
+        <rect x="1370" y="990" width="170" height="95" rx="3" class="dg-driver"/>
+        <text x="1455" y="1018" class="dg-name" text-anchor="middle">音效输出</text>
+        <text x="1455" y="1042" class="dg-ent" text-anchor="middle">buzzer_ctrl</text>
+        <text x="1455" y="1064" class="dg-sub" text-anchor="middle">tick_8k · 8 种音效</text>
 
         <!-- ·········· 外部输入 ·········· -->
-        <line x1="35" y1="262" x2="70" y2="262" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="52" y="254" class="dg-io" text-anchor="middle">kp_row</text>
-        <line x1="70" y1="310" x2="35" y2="310" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="52" y="330" class="dg-io" text-anchor="middle">kp_col</text>
+        <line x1="90" y1="462" x2="170" y2="462" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="128" y="454" class="dg-io" text-anchor="middle">kp_row</text>
+        <line x1="170" y1="512" x2="90" y2="512" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="128" y="534" class="dg-io" text-anchor="middle">kp_col</text>
 
         <!-- ·········· 外部器件 ·········· -->
-        <line x1="1090" y1="284" x2="1120" y2="284" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="1128" y="280" class="dg-dev">数码管 ·</text>
-        <text x="1128" y="298" class="dg-dev">8×8 双色点阵</text>
-        <line x1="1270" y1="514" x2="1300" y2="514" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="1308" y="518" class="dg-dev">蜂鸣器</text>
+        <line x1="1540" y1="487" x2="1608" y2="487" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="1616" y="472" class="dg-dev">数码管 ·</text>
+        <text x="1616" y="492" class="dg-dev">8×8 双色点阵</text>
+        <line x1="1540" y1="1037" x2="1608" y2="1037" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="1616" y="1042" class="dg-dev">蜂鸣器</text>
 
-        <!-- ·········· 数据流 ·········· -->
-        <!-- 键盘 → 控制 -->
-        <line x1="260" y1="284" x2="330" y2="284" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="295" y="276" class="dg-lbl" text-anchor="middle">按键</text>
+        <!-- ·········· 主数据流（横向一条通路，全程单向） ·········· -->
+        <line x1="360" y1="487" x2="555" y2="487" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="457" y="458" class="dg-lbl" text-anchor="middle">按键</text>
+        <text x="457" y="475" class="dg-lbl" text-anchor="middle">key_code · key_press</text>
 
-        <!-- 控制 → 核心 -->
-        <line x1="530" y1="284" x2="610" y2="284" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="570" y="276" class="dg-lbl" text-anchor="middle">控制</text>
+        <line x1="765" y1="487" x2="935" y2="487" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="850" y="458" class="dg-lbl" text-anchor="middle">控制</text>
+        <text x="850" y="475" class="dg-lbl" text-anchor="middle">level · round_start</text>
 
-        <!-- 核心 → 显示 -->
-        <line x1="810" y1="284" x2="880" y2="284" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="845" y="276" class="dg-lbl" text-anchor="middle">像素</text>
+        <line x1="1150" y1="487" x2="1290" y2="487" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="1215" y="458" class="dg-lbl" text-anchor="middle">像素</text>
+        <text x="1215" y="475" class="dg-lbl" text-anchor="middle">px_red · px_green</text>
 
-        <!-- 控制 → 数据（选图案）标签放在水平段上，避免压到「拼图核心」左边框 -->
-        <path d="M530,290 H570 V430 H660 V470" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="574" y="424" class="dg-lbl">pattern_sel</text>
+        <!-- 控制 → 图案与随机数据：选图案 + 装随机种子 -->
+        <path d="M760,545 V620 H980 V730" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="774" y="612" class="dg-lbl">pattern_sel · seed</text>
 
-        <!-- 数据 → 核心 -->
-        <line x1="700" y1="470" x2="700" y2="328" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="708" y="404" class="dg-lbl">target_mask</text>
-        <text x="708" y="420" class="dg-lbl">rel_mask · rnd</text>
+        <!-- 核心 ↔ 图案与随机数据：来回各画一条，不画双向箭头。
+             下行 rnd_step 是关键：rng_lfsr 每收到一次请求才步进一次，
+             接到节拍上会让同一次尝试的多次落位读到同一个随机数（见 §10.1） -->
+        <line x1="1020" y1="545" x2="1020" y2="730" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="1008" y="576" class="dg-lbl" text-anchor="end">rnd_step</text>
+        <line x1="1080" y1="730" x2="1080" y2="545" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="1092" y="600" class="dg-lbl">target_mask · rel_mask</text>
+        <text x="1092" y="617" class="dg-lbl">· rnd</text>
 
-        <!-- 控制 → 显示（状态与倒计时）绕下方，避开点阵像素线 -->
-        <path d="M530,315 H560 V690 H1020 V328" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="566" y="640" class="dg-lbl">state · level · cnt</text>
+        <!-- 控制 → 显示：状态与倒计时。必须走最下方走廊，
+             若在 y≈487 直接右拐会横穿「拼图核心」方框 -->
+        <path d="M720,545 V920 H1415 V545" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="730" y="912" class="dg-lbl">state · level · cnt</text>
 
-        <!-- 反馈：核心 → 控制 -->
-        <path d="M670,240 V190 H490 V240" class="dg-wire-fb" marker-end="url(#b2)"/>
-        <text x="580" y="182" class="dg-lbl-fb" text-anchor="middle">all_locked · solved</text>
+        <!-- 控制 → 音效：走再下面一条走廊，与上面那条上下嵌套 -->
+        <path d="M640,545 V1037 H1370" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="650" y="1029" class="dg-lbl">sound_sel</text>
 
-        <!-- 控制 → 音效：必须绕最下方。若在 y≈307 直接右拐，
-             会横穿「拼图核心」与「显示子系统」两个方框（y 240~328 正是框内） -->
-        <path d="M500,328 V730 H1180 V558" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="1170" y="724" class="dg-lbl" text-anchor="end">sound_sel</text>
+        <!-- 唯一的反馈回路：拼图核心 → 游戏控制。
+             走「节拍总线下方、方框上方」的走廊（y=395），
+             起点终点都取在两处节拍下引线之间，不与任何竖线相交 -->
+        <path d="M1050,430 V395 H680 V430" class="dg-wire-fb" marker-end="url(#b2)"/>
+        <text x="865" y="386" class="dg-lbl-fb" text-anchor="middle">all_locked · solved</text>
       </svg>
     </div>
 
     <div class="footnote">
-      <span>橙线 = 节拍使能（由 clk_gen 扇出）</span>
-      <span>黑线 = 数据流</span>
-      <span>橙色虚线 = 唯一的反馈回路</span>
+      <span>橙线 = 时钟与节拍（由 <b>clk_gen</b> 扇出）</span>
+      <span>黑线 = 数据流 / 控制流</span>
+      <span>棕色虚线 = 唯一的反馈回路</span>
+      <span>外圈虚线 = <b>puzzle_top 边界</b>，不是模块</span>
+      <span>「图案与随机数据」<b>不接节拍</b> —— 两个 ROM 纯组合，rng 由 <b>rnd_step</b> 请求推进</span>
       <span>本层每框 = 一个<b>功能子系统</b>，展开见 DWG-02</span>
     </div>
   </section>
