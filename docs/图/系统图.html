@@ -184,7 +184,8 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <!-- ·········· 时钟与节拍（画成椭圆，与方框模块区分：它只有扇出、没有数据流） ··········
              50MHz 的来源直接写在椭圆里、不再单独画一条输入线 ——
              它是这一子系统的属性（分频基准），不是第二路控制输入。
-             真正需要从图外进来的只有 SW7（它参与复位：rst = (not SW7) or por_rst）。 -->
+             真正需要从图外进来的只有 SW7（它参与复位：rst = (not SW7) or por_rst）。
+             ⚠️ clk 的"顶层直连 8 个时序实体"画在 DWG-02 那一层（那里才有实体），本层不画。 -->
         <ellipse cx="875" cy="265" rx="95" ry="50" class="dg-time"/>
         <text x="875" y="247" class="dg-name" text-anchor="middle">时钟与节拍</text>
         <text x="875" y="268" class="dg-ent" text-anchor="middle">clk_gen</text>
@@ -198,7 +199,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
 
         <path d="M875,315 V360" class="dg-rail"/>
         <line x1="245" y1="360" x2="1585" y2="360" class="dg-rail"/>
-        <text x="250" y="352" class="dg-lbl">clk 与节拍总线 · tick_8k · tick_1k · tick_100 · tick_2hz · tick_1hz</text>
+        <text x="250" y="352" class="dg-lbl">节拍总线（不含 clk）· tick_8k · tick_1k · tick_100 · tick_2hz · tick_1hz</text>
 
         <!-- 节拍扇出：橙线＝时钟/节拍，与黑色数据线区分开 -->
         <line x1="265" y1="360" x2="265" y2="430" class="dg-tap" marker-end="url(#b3)"/>
@@ -215,7 +216,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <rect x="170" y="430" width="190" height="115" rx="3" class="dg-driver"/>
         <text x="265" y="466" class="dg-name" text-anchor="middle">键盘输入</text>
         <text x="265" y="490" class="dg-ent" text-anchor="middle">keypad_scan</text>
-        <text x="265" y="514" class="dg-sub" text-anchor="middle">tick_1k · 20ms 消抖</text>
+        <text x="265" y="514" class="dg-sub" text-anchor="middle">tick_1k · 80ms 消抖</text>
 
         <rect x="555" y="430" width="210" height="115" rx="3" class="dg-time"/>
         <text x="660" y="466" class="dg-name" text-anchor="middle">游戏控制</text>
@@ -262,9 +263,13 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <text x="457" y="458" class="dg-lbl" text-anchor="middle">按键</text>
         <text x="457" y="475" class="dg-lbl" text-anchor="middle">key_code · key_press</text>
 
+        <!-- 控制 → 拼图核心：开局脉冲 + 三种操作键脉冲。
+             ⚠️ 这里**没有 level** —— puzzle_ctrl 不关心第几关（docs/01 §5.8），
+             零片形状由 piece_rom 按 level 预先选好。 -->
         <line x1="765" y1="487" x2="935" y2="487" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="850" y="458" class="dg-lbl" text-anchor="middle">控制</text>
-        <text x="850" y="475" class="dg-lbl" text-anchor="middle">level · round_start</text>
+        <text x="850" y="441" class="dg-lbl" text-anchor="middle">操作键转发</text>
+        <text x="850" y="458" class="dg-lbl" text-anchor="middle">round_start</text>
+        <text x="850" y="475" class="dg-lbl" text-anchor="middle">sel · conf · dir</text>
 
         <line x1="1150" y1="487" x2="1290" y2="487" class="dg-wire" marker-end="url(#b1)"/>
         <text x="1215" y="458" class="dg-lbl" text-anchor="middle">像素</text>
@@ -272,7 +277,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
 
         <!-- 控制 → 图案与随机数据：选图案 + 装随机种子 -->
         <path d="M760,545 V620 H980 V730" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="774" y="612" class="dg-lbl">pattern_sel · seed</text>
+        <text x="774" y="612" class="dg-lbl">pattern_sel · level · seed</text>
 
         <!-- 核心 ↔ 图案与随机数据：来回各画一条，不画双向箭头。
              下行 rnd_step 是关键：rng_lfsr 每收到一次请求才步进一次，
@@ -286,11 +291,15 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <!-- 控制 → 显示：状态与倒计时。必须走最下方走廊，
              若在 y≈487 直接右拐会横穿「拼图核心」方框 -->
         <path d="M720,545 V920 H1415 V545" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="730" y="912" class="dg-lbl">state · level · cnt</text>
+        <text x="730" y="895" class="dg-lbl">state · level</text>
+        <text x="730" y="912" class="dg-lbl">preview_cnt · game_cnt_bcd</text>
 
-        <!-- 控制 → 音效：走再下面一条走廊，与上面那条上下嵌套 -->
+        <!-- 控制 → 音效：走再下面一条走廊，与上面那条上下嵌套。
+             ⚠️ sound_trig 必须画出来 —— buzzer_ctrl.i_trigger 靠它驱动，
+             漏画就等于顶层漏接，那根线会静默悬空（docs/01 §5.10）。 -->
         <path d="M640,545 V1037 H1370" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="650" y="1029" class="dg-lbl">sound_sel</text>
+        <text x="650" y="1012" class="dg-lbl">sound_sel</text>
+        <text x="650" y="1029" class="dg-lbl">sound_trig</text>
 
         <!-- 唯一的反馈回路：拼图核心 → 游戏控制。
              走「节拍总线下方、方框上方」的走廊（y=395），
@@ -301,12 +310,13 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
     </div>
 
     <div class="footnote">
-      <span>橙线 = 时钟与节拍（由 <b>clk_gen</b> 扇出）</span>
+      <span>橙线 = <b>节拍使能</b>（由 <b>clk_gen</b> 扇出）—— <b>clk 不走这条线</b></span>
       <span>黑线 = 数据流 / 控制流</span>
       <span>棕色虚线 = 唯一的反馈回路</span>
       <span>外圈虚线 = <b>puzzle_top 边界</b>，不是模块</span>
       <span>「图案与随机数据」<b>不接节拍</b> —— 两个 ROM 纯组合，rng 由 <b>rnd_step</b> 请求推进</span>
       <span>本层每框 = 一个<b>功能子系统</b>，展开见 DWG-02</span>
+      <span><b>clk 的分发不在本层画</b>（它是引脚级事实）—— 见 DWG-02 脚注的 8 个接收者清单</span>
     </div>
   </section>
 
@@ -333,7 +343,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
       <div class="note">
         <h3>为什么要分两层画</h3>
         <p>
-          十二个实体平铺在一张图上，读不出结构，答辩时也讲不出主线。
+          十一个实体平铺在一张图上，读不出结构，答辩时也讲不出主线。
           分两层后：<b>DWG-01 讲系统怎么组织</b>（一页看懂），
           <b>DWG-02 讲每个模块怎么实现</b>（老师抽问用）。
         </p>
@@ -363,6 +373,9 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <!-- ·········· 外部输入 ·········· -->
         <line x1="25" y1="133" x2="80" y2="133" class="dg-wire" marker-end="url(#a1)"/>
         <text x="52" y="124" class="dg-io" text-anchor="middle">clk</text>
+        <!-- ⚠️ clk 只在这里画一次入口，但它**不是只进 clk_gen**：
+             它由顶层直连全部 8 个时序实体，不经过 clk_gen 转发（docs/01 §2.1 系统级连线 A）。
+             8 个接收者逐个列在下方的脚注里 —— 画成 8 条线会横穿全图，反而看不清。 -->
 
         <line x1="25" y1="722" x2="80" y2="722" class="dg-wire" marker-end="url(#a1)"/>
         <text x="52" y="713" class="dg-io" text-anchor="middle">kp_row</text>
@@ -372,22 +385,23 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <!-- ·········· C1：时钟与输入 ·········· -->
         <rect x="80" y="95" width="160" height="76" rx="3" class="dg-time"/>
         <text x="160" y="127" class="dg-t" text-anchor="middle">clk_gen</text>
-        <text x="160" y="146" class="dg-sub" text-anchor="middle">分频 · 上电复位</text>
+        <text x="160" y="146" class="dg-sub" text-anchor="middle">clk 分频 · 上电复位</text>
 
         <rect x="80" y="700" width="160" height="76" rx="3" class="dg-driver"/>
         <text x="160" y="732" class="dg-t" text-anchor="middle">keypad_scan</text>
-        <text x="160" y="751" class="dg-sub" text-anchor="middle">tick_1k · 20ms 消抖</text>
+        <text x="160" y="751" class="dg-sub" text-anchor="middle">clk · tick_1k · 80ms 消抖</text>
 
         <!-- ·········· C2：调度 ·········· -->
-        <rect x="310" y="95" width="180" height="90" rx="3" class="dg-time"/>
-        <text x="400" y="130" class="dg-t" text-anchor="middle">game_fsm</text>
-        <text x="400" y="150" class="dg-sub" text-anchor="middle">tick_1hz · tick_2hz</text>
-        <text x="400" y="166" class="dg-sub" text-anchor="middle">状态 · 倒计时 · 关卡</text>
+        <!-- 宽 200（不是 180）：它要列 4 档节拍，180 装不下会把字挤到框外 -->
+        <rect x="310" y="95" width="200" height="90" rx="3" class="dg-time"/>
+        <text x="410" y="128" class="dg-t" text-anchor="middle">game_fsm</text>
+        <text x="410" y="148" class="dg-sub" text-anchor="middle">clk · tick_100 · tick_2hz</text>
+        <text x="410" y="164" class="dg-sub" text-anchor="middle">tick_1hz · 状态 · 倒计时 · 关卡</text>
 
         <!-- ·········· C3：数据 ·········· -->
         <rect x="560" y="95" width="160" height="76" rx="3" class="dg-data"/>
         <text x="640" y="127" class="dg-t" text-anchor="middle">disp_format</text>
-        <text x="640" y="146" class="dg-sub" text-anchor="middle">纯组合 · 状态→BCD</text>
+        <text x="640" y="146" class="dg-sub" text-anchor="middle">纯组合 · 显示总入口</text>
 
         <rect x="560" y="285" width="160" height="76" rx="3" class="dg-data"/>
         <text x="640" y="317" class="dg-t" text-anchor="middle">pattern_rom</text>
@@ -399,27 +413,27 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
 
         <rect x="560" y="565" width="160" height="76" rx="3" class="dg-data"/>
         <text x="640" y="597" class="dg-t" text-anchor="middle">rng_lfsr</text>
-        <text x="640" y="616" class="dg-sub" text-anchor="middle">8 位 · 周期 255</text>
+        <text x="640" y="616" class="dg-sub" text-anchor="middle">clk（按 rnd_step 推进）</text>
 
         <!-- ·········· C4：核心 ·········· -->
         <rect x="820" y="385" width="180" height="90" rx="3" class="dg-data"/>
         <text x="910" y="420" class="dg-t" text-anchor="middle">puzzle_ctrl</text>
-        <text x="910" y="440" class="dg-sub" text-anchor="middle">空间引擎 · 无计数器</text>
+        <text x="910" y="440" class="dg-sub" text-anchor="middle">clk · 无节拍 · 空间引擎</text>
         <text x="910" y="456" class="dg-sub" text-anchor="middle">锚点 / 钳位 / 判定</text>
 
         <!-- ·········· C5：输出驱动 ·········· -->
         <rect x="1070" y="95" width="160" height="76" rx="3" class="dg-driver"/>
         <text x="1150" y="127" class="dg-t" text-anchor="middle">seg_scan</text>
-        <text x="1150" y="146" class="dg-sub" text-anchor="middle">tick_1k · 消隐扫描</text>
+        <text x="1150" y="146" class="dg-sub" text-anchor="middle">clk · tick_1k · 消隐扫描</text>
 
         <rect x="1070" y="386" width="160" height="88" rx="3" class="dg-driver"/>
         <text x="1150" y="420" class="dg-t" text-anchor="middle">dot_matrix_scan</text>
-        <text x="1150" y="440" class="dg-sub" text-anchor="middle">tick_1k · 行扫描</text>
+        <text x="1150" y="440" class="dg-sub" text-anchor="middle">clk · tick_1k · 行扫描</text>
         <text x="1150" y="456" class="dg-sub" text-anchor="middle">消隐防鬼影</text>
 
         <rect x="1070" y="675" width="160" height="76" rx="3" class="dg-driver"/>
         <text x="1150" y="707" class="dg-t" text-anchor="middle">buzzer_ctrl</text>
-        <text x="1150" y="726" class="dg-sub" text-anchor="middle">tick_8k · 音效</text>
+        <text x="1150" y="726" class="dg-sub" text-anchor="middle">clk · tick_8k · 音效</text>
 
         <!-- ·········· 输出级门控（虚线区，非模块） ·········· -->
         <rect x="1250" y="95" width="90" height="656" rx="3" class="dg-region"/>
@@ -450,42 +464,92 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <text x="273" y="500" class="dg-lbl">key_code</text>
         <text x="273" y="516" class="dg-lbl">key_press</text>
 
-        <!-- 4 game_fsm → disp_format -->
-        <line x1="490" y1="133" x2="560" y2="133" class="dg-wire" marker-end="url(#a1)"/>
-        <text x="525" y="124" class="dg-lbl" text-anchor="middle">state</text>
+        <!-- 4 game_fsm → disp_format：状态 · 关卡 · 两个倒计时 · 2Hz 闪烁方波
+             （docs/01 §2.1 子系统间连线第 7 条）。
+             走 y=50 的上方走廊：490~560 只有 70 单位，5 个信号名横着放不进那条缝，
+             贴着方框写又会压框（ERR-0006/0008/0009 那一类）。 -->
+        <path d="M400,95 V50 H640 V95" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="520" y="22" class="dg-lbl" text-anchor="middle">state · level · blink</text>
+        <text x="520" y="39" class="dg-lbl" text-anchor="middle">preview_cnt · game_cnt_bcd</text>
 
         <!-- 5 disp_format → seg_scan -->
         <line x1="720" y1="133" x2="1070" y2="133" class="dg-wire" marker-end="url(#a1)"/>
         <text x="895" y="124" class="dg-lbl" text-anchor="middle">disp_val · blank</text>
 
-        <!-- 6 game_fsm → pattern_rom -->
+        <!-- 6 game_fsm → pattern_rom，以及同一根出线的分支 → piece_rom（level）。
+             两条都用 x=400 这条竖线：185~323 段完全重合、渲染成一根线，
+             在 y=323 分出一支进 pattern_rom、在 y=463 再分一支进 piece_rom。
+             这不是"两根线画在一起"，是**一个源、两个目的地**的树状走线。 -->
         <path d="M400,185 V323 H560" class="dg-wire" marker-end="url(#a1)"/>
         <text x="408" y="303" class="dg-lbl">pattern_sel</text>
+        <path d="M400,185 V463 H560" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="408" y="455" class="dg-lbl">level</text>
+        <!-- 6c 同一个源、第三支 → rng_lfsr：随机种子 ＋ 装入脉冲（连线表第 3 条）。
+             ⚠️ seed_load 是"按开始键才装一次"的脉冲，漏画它 rng 永远停在初值。 -->
+        <path d="M380,185 V620 H560" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="388" y="612" class="dg-lbl">seed · seed_load</text>
+
+        <!-- 6b game_fsm → puzzle_ctrl：开局脉冲 + 三种操作键脉冲。
+             ⚠️ 原先这条线在 DWG-02 里**漏画了** —— 图上看 puzzle_ctrl 只从
+             pattern_rom/piece_rom/rng_lfsr 取数，却没有任何操作键入口（ERR-0012）。
+             走 y=272 这条空走廊：它在反馈线(y=240)与 pattern_rom 顶边(285)之间，
+             且 x 从 430 起，避开 x=450 的反馈竖线与 x=360 的音效竖线。 -->
+        <path d="M430,185 V272 H860 V385" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="442" y="264" class="dg-lbl">round_start · sel · conf · dir</text>
 
         <!-- 7 pattern_rom → puzzle_ctrl -->
         <path d="M720,323 H770 V405 H820" class="dg-wire" marker-end="url(#a1)"/>
         <text x="728" y="315" class="dg-lbl">target_mask</text>
 
+        <!-- 7b pattern_rom → disp_format：o_mask 的**第二去处**（连线表第 12 条）。
+             预览（要求 4）与胜利/失败图案直接把 pattern_mask 上点阵 ——
+             漏画这条，预览画面就没有来源。 -->
+        <line x1="600" y1="285" x2="600" y2="171" class="dg-wire" marker-end="url(#a1)"/>
+        <!-- 标签右对齐到 x=594：左对齐会往右长，压到 x=660 那根 px 竖线上；
+             放到 y=196 是为了躲开 y=205 的 px 横走廊与 y=232 的反馈标签。 -->
+        <text x="594" y="196" class="dg-lbl" text-anchor="end">pattern_mask</text>
+
         <!-- 8 piece_rom → puzzle_ctrl -->
         <path d="M720,463 H785 V435 H820" class="dg-wire" marker-end="url(#a1)"/>
         <text x="728" y="483" class="dg-lbl">rel_mask</text>
 
-        <!-- 9 rng_lfsr → puzzle_ctrl -->
+        <!-- 9 rng_lfsr → puzzle_ctrl。标签放在线**上方**（y=595），
+             把线下方让给 11b 的 rnd_step —— 两条线相距 29 单位，
+             各自的标签都长在自己那侧，互不压字。 -->
         <path d="M720,603 H800 V465 H820" class="dg-wire" marker-end="url(#a1)"/>
-        <text x="728" y="623" class="dg-lbl">rnd</text>
+        <text x="728" y="595" class="dg-lbl">rnd</text>
 
-        <!-- 10 puzzle_ctrl → dot_matrix_scan -->
-        <line x1="1000" y1="430" x2="1070" y2="430" class="dg-wire" marker-end="url(#a1)"/>
-        <text x="1035" y="421" class="dg-lbl" text-anchor="middle">px_red</text>
-        <text x="1035" y="450" class="dg-lbl" text-anchor="middle">px_green</text>
+        <!-- 10 puzzle_ctrl → disp_format → dot_matrix_scan。
+             ⚠️ 原先画成 puzzle_ctrl 直连 dot_matrix_scan —— 那是**错的**：
+             disp_format 是点阵像素的**唯一汇合点**（它按 state 在"预览图案 /
+             游戏画面 / 胜负图案"之间选一路），绕过它点阵就没有多路选择器。 -->
+        <path d="M940,385 V205 H660 V171" class="dg-wire" marker-end="url(#a1)"/>
+        <!-- 两个 px 标签同名不是笔误：disp_format 只做多路选择、不改名。
+             上路标签贴线放（y=197），下路右对齐到 x=1030，两者 y 相差 45 不会打架。 -->
+        <text x="668" y="197" class="dg-lbl">px_red · px_green</text>
+
+        <path d="M720,160 H1040 V410 H1070" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="1030" y="152" class="dg-lbl" text-anchor="end">px_red · px_green</text>
 
         <!-- 11 反馈：puzzle_ctrl → game_fsm -->
         <path d="M910,385 V240 H450 V185" class="dg-wire-fb" marker-end="url(#a2)"/>
         <text x="670" y="232" class="dg-lbl-fb" text-anchor="middle">all_locked · solved</text>
 
-        <!-- 12 game_fsm → buzzer_ctrl -->
-        <path d="M320,185 V713 H1070" class="dg-wire" marker-end="url(#a1)"/>
-        <text x="328" y="690" class="dg-lbl">sound_sel</text>
+        <!-- 11b puzzle_ctrl → rng_lfsr：rnd_step 请求推进。
+             ⚠️ 这条线**绝不能**画成"从节拍总线引一根 tick 进 rng_lfsr" ——
+             那正是 CLAUDE.md §10.1 的坑：同一 tick 内多次落位尝试会读到
+             同一个随机数，游戏永远不随机且几乎查不出来。 -->
+        <path d="M840,475 V632 H720" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="730" y="624" class="dg-lbl">rnd_step</text>
+
+        <!-- 12 game_fsm → buzzer_ctrl。⚠️ sound_trig 与 sound_sel 一起送 ——
+             i_trigger 是边沿触发，缺了它就"代码齐全、蜂鸣器不响"。
+             ⚠️ 竖线取 x=360 而非 320：x=320 会把左侧 key_code/key_press 标签的
+             最后一个字符压掉（ERR-0011）。360 让 265~360 这条走廊有 95 单位余量，
+             足够放下最长的标签 "key_press"（59 单位）。 -->
+        <path d="M360,185 V713 H1070" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="368" y="673" class="dg-lbl">sound_sel</text>
+        <text x="368" y="690" class="dg-lbl">sound_trig</text>
 
         <!-- 输出驱动 → 门控 -->
         <line x1="1230" y1="133" x2="1250" y2="133" class="dg-wire"/>
@@ -495,9 +559,16 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
     </div>
 
     <div class="footnote">
-      <span>框内小字 = 该模块使用的节拍使能</span>
+      <span>框内小字 = 该模块的时钟来源（<b>clk</b> 与节拍使能，没有 `clk` 的即纯组合）</span>
       <span>橙色虚线 = 反馈路径</span>
       <span>灰色虚线 = 代码区，不是模块</span>
+      <span>
+        <b>clk 只画了一处入口，但收它的是 8 个时序实体</b>（顶层直连，<b>不经 <code>clk_gen</code> 转发</b>）：
+        <b>clk_gen</b> · <b>keypad_scan</b> · <b>game_fsm</b> · <b>puzzle_ctrl</b> · <b>rng_lfsr</b> ·
+        <b>seg_scan</b> · <b>dot_matrix_scan</b> · <b>buzzer_ctrl</b>。
+        画成 8 条线会横穿全图；每个时序实体框内的小字已逐框标出 <code>clk</code>。
+      </span>
+      <span>纯组合（<b>无 clk</b>）：<b>disp_format</b> · <b>pattern_rom</b> · <b>piece_rom</b></span>
     </div>
   </section>
 
@@ -601,11 +672,15 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <path d="M770,250 V170 H575 V250" class="dg-wire" marker-end="url(#a3)"/>
         <text x="672" y="162" class="st-lbl-hi" text-anchor="middle">第一关拼对 · 关卡←2 · 换图案</text>
 
-        <!-- T8+T9 返回 IDLE -->
-        <path d="M1140,148 H1200 V540" class="dg-wire"/>
-        <path d="M1140,438 H1200" class="dg-wire"/>
-        <path d="M1200,540 H360 V326" class="dg-wire" marker-end="url(#a3)"/>
-        <text x="780" y="532" class="st-lbl-hi" text-anchor="middle">按「开始」重开一局（采样新种子）</text>
+        <!-- T8+T9 重开：**任意状态**按「开始」→ 直接进 S_PREVIEW（不回 S_IDLE）。
+             docs/00 要求 11 的判读原文是"立即回到第一关的预览态"，
+             所以这条边的终点必须是 S_PREVIEW，走 S_IDLE 会多出一次"按键才进预览"。
+             这条边其实对全部 6 个状态都成立，图上只把 S_WIN / S_FAIL 这两条
+             （最不容易想到的）连出来，另行标注"任意状态"以免读者以为只有这两条。 -->
+        <path d="M1140,148 H1210 V566 H575 V326" class="dg-wire" marker-end="url(#a3)"/>
+        <path d="M1140,438 H1210" class="dg-wire"/>
+        <text x="880" y="536" class="st-lbl-hi" text-anchor="middle">任意状态按「开始」· 重开一局</text>
+        <text x="880" y="552" class="st-lbl-hi" text-anchor="middle">→ 直接回 S_PREVIEW（不经 S_IDLE）· 关卡←1 · 采样新种子</text>
 
         <!-- 初始标注 -->
         <text x="145" y="352" class="st-enc" text-anchor="middle">上电 或 SW7=0</text>
@@ -616,7 +691,9 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
       <span>状态编码 3 位（非 one-hot）</span>
       <span>绿 = 成功路径</span>
       <span>红 = 失败路径</span>
-      <span>灰 = 无条件迁移</span>
+      <span>灰 = 无条件 / 按键迁移</span>
+      <span>「重开」这条边对<b>全部 6 个状态</b>都成立，图上只连出 S_WIN / S_FAIL 两支</span>
+      <span>复位是<b>异步于状态</b>的：<code>rst = (not SW7) or por_rst</code>，6 个状态一律回 S_SELF_TEST</span>
     </div>
   </section>
 
