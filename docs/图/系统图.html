@@ -120,6 +120,12 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
 .dg-dev{font-family:"Noto Sans SC",sans-serif;font-size:12.5px;font-weight:500;fill:var(--paper-ink)}
 .dg-grid{stroke:var(--paper-grid);stroke-width:1}
 
+/* 总体框图（第一层）专用 */
+.dg-name{font-family:"Noto Sans SC",sans-serif;font-size:14px;font-weight:700;fill:var(--paper-ink)}
+.dg-ent{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:500;fill:var(--paper-ink)}
+.dg-rail{stroke:var(--c-time);stroke-width:2.4;fill:none}
+.dg-tap{stroke:var(--c-time);stroke-width:1.4;fill:none;opacity:.75}
+
 /* 状态图 */
 .st{stroke-width:2}
 .st-name{font-family:"IBM Plex Mono",monospace;font-size:13.5px;font-weight:600;fill:var(--paper-ink)}
@@ -136,23 +142,186 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
     <div class="eyebrow">题目 4 · 简易拼图游戏 · 设计图表</div>
     <h1>点阵拼图系统图</h1>
     <p class="standfirst">
-      两张图：系统的总体框图，以及 <span class="mono">game_fsm</span> 的状态转移图。
-      每张图都画在独立的图幅上，框内名称与 <span class="mono">rtl/*.vhd</span> 的实体名逐一对应。
+      三张图，按<b>自顶向下</b>的两层展开：<b>DWG-01</b> 是功能子系统级的系统总览，
+      <b>DWG-02</b> 把它展开到 <span class="mono">rtl/*.vhd</span> 的每一个实体，
+      <b>DWG-03</b> 是 <span class="mono">game_fsm</span> 的状态转移图。
     </p>
     <div class="meta-row">
       <span>器件 <b>EPM1270T144C5</b></span>
       <span>时钟 <b>50 MHz</b></span>
-      <span>模块 <b>12 + 2</b></span>
-      <span>版本 <b>v1 · 2026-09-17</b></span>
+      <span>第一层 <b>7 个子系统</b></span>
+      <span>第二层 <b>11 个实体</b></span>
+      <span>版本 <b>v2 · 2026-09-17</b></span>
     </div>
   </header>
 
-  <!-- ==================== 图幅 1：总体框图 ==================== -->
+  <!-- ==================== 图幅 1：系统总体框图（第一层） ==================== -->
   <section class="sheet">
     <div class="titleblock">
       <span class="dwg">DWG-01</span>
-      <span class="nm">系统总体框图</span>
-      <span class="rev">比例 N/A · 共 2 图 · 第 1 图</span>
+      <span class="nm">系统总体框图 · 第一层（功能子系统）</span>
+      <span class="rev">比例 N/A · 共 3 图 · 第 1 图</span>
+    </div>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1460 780" role="img" aria-label="拼图游戏系统总体框图，功能子系统级">
+        <defs>
+          <marker id="b1" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#4A4844"/>
+          </marker>
+          <marker id="b2" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#8A5A00"/>
+          </marker>
+        </defs>
+
+        <!-- ·········· 时钟与节拍 ·········· -->
+        <rect x="560" y="30" width="340" height="66" rx="3" class="dg-time"/>
+        <text x="730" y="52" class="dg-name" text-anchor="middle">时钟与节拍</text>
+        <text x="730" y="70" class="dg-ent" text-anchor="middle">clk_gen</text>
+        <text x="730" y="87" class="dg-sub" text-anchor="middle">50 MHz → 5 档单周期使能 + 上电复位</text>
+
+        <line x1="520" y1="63" x2="560" y2="63" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="546" y="55" class="dg-io" text-anchor="end">sw7</text>
+
+        <path d="M730,96 V140" class="dg-rail"/>
+        <line x1="100" y1="140" x2="1230" y2="140" class="dg-rail"/>
+        <text x="104" y="132" class="dg-lbl">节拍总线 · tick_8k · tick_1k · tick_100 · tick_2hz · tick_1hz · rst</text>
+
+        <!-- 节拍扇出（橙线＝节拍，与数据线区分） -->
+        <line x1="165" y1="140" x2="165" y2="240" class="dg-tap" marker-end="url(#b1)"/>
+        <line x1="430" y1="140" x2="430" y2="240" class="dg-tap" marker-end="url(#b1)"/>
+        <line x1="710" y1="140" x2="710" y2="240" class="dg-tap" marker-end="url(#b1)"/>
+        <line x1="985" y1="140" x2="985" y2="240" class="dg-tap" marker-end="url(#b1)"/>
+        <path d="M860,140 V430 H760 V470" class="dg-tap" marker-end="url(#b1)"/>
+        <line x1="1250" y1="140" x2="1250" y2="470" class="dg-tap" marker-end="url(#b1)"/>
+
+        <!-- ·········· 第一层：七个功能子系统 ·········· -->
+        <rect x="70" y="240" width="190" height="88" rx="3" class="dg-driver"/>
+        <text x="165" y="266" class="dg-name" text-anchor="middle">键盘输入</text>
+        <text x="165" y="287" class="dg-ent" text-anchor="middle">keypad_scan</text>
+        <text x="165" y="307" class="dg-sub" text-anchor="middle">tick_1k · 20ms 消抖</text>
+
+        <rect x="330" y="240" width="200" height="88" rx="3" class="dg-time"/>
+        <text x="430" y="266" class="dg-name" text-anchor="middle">游戏控制</text>
+        <text x="430" y="287" class="dg-ent" text-anchor="middle">game_fsm</text>
+        <text x="430" y="307" class="dg-sub" text-anchor="middle">状态机 · 倒计时 · 关卡</text>
+
+        <rect x="610" y="240" width="200" height="88" rx="3" class="dg-data"/>
+        <text x="710" y="266" class="dg-name" text-anchor="middle">拼图核心</text>
+        <text x="710" y="287" class="dg-ent" text-anchor="middle">puzzle_ctrl</text>
+        <text x="710" y="307" class="dg-sub" text-anchor="middle">锚点 · 钳位 · 锁定 · 判定</text>
+
+        <rect x="880" y="240" width="210" height="88" rx="3" class="dg-driver"/>
+        <text x="985" y="264" class="dg-name" text-anchor="middle">显示子系统</text>
+        <text x="985" y="283" class="dg-ent" text-anchor="middle">disp_format · seg_scan</text>
+        <text x="985" y="300" class="dg-ent" text-anchor="middle">dot_matrix_scan</text>
+        <text x="985" y="317" class="dg-sub" text-anchor="middle">tick_1k · 消隐防鬼影</text>
+
+        <rect x="610" y="470" width="200" height="96" rx="3" class="dg-data"/>
+        <text x="710" y="500" class="dg-name" text-anchor="middle">图案与随机数据</text>
+        <text x="710" y="521" class="dg-ent" text-anchor="middle">pattern_rom · piece_rom</text>
+        <text x="710" y="540" class="dg-ent" text-anchor="middle">rng_lfsr</text>
+
+        <rect x="1090" y="470" width="180" height="88" rx="3" class="dg-driver"/>
+        <text x="1180" y="498" class="dg-name" text-anchor="middle">音效输出</text>
+        <text x="1180" y="519" class="dg-ent" text-anchor="middle">buzzer_ctrl</text>
+        <text x="1180" y="539" class="dg-sub" text-anchor="middle">tick_8k · 8 种音效</text>
+
+        <!-- ·········· 外部输入 ·········· -->
+        <line x1="35" y1="262" x2="70" y2="262" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="52" y="254" class="dg-io" text-anchor="middle">kp_row</text>
+        <line x1="70" y1="310" x2="35" y2="310" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="52" y="330" class="dg-io" text-anchor="middle">kp_col</text>
+
+        <!-- ·········· 外部器件 ·········· -->
+        <line x1="1090" y1="284" x2="1120" y2="284" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="1128" y="280" class="dg-dev">数码管 ·</text>
+        <text x="1128" y="298" class="dg-dev">8×8 双色点阵</text>
+        <line x1="1270" y1="514" x2="1300" y2="514" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="1308" y="518" class="dg-dev">蜂鸣器</text>
+
+        <!-- ·········· 数据流 ·········· -->
+        <!-- 键盘 → 控制 -->
+        <line x1="260" y1="284" x2="330" y2="284" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="295" y="276" class="dg-lbl" text-anchor="middle">按键</text>
+
+        <!-- 控制 → 核心 -->
+        <line x1="530" y1="284" x2="610" y2="284" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="570" y="276" class="dg-lbl" text-anchor="middle">控制</text>
+
+        <!-- 核心 → 显示 -->
+        <line x1="810" y1="284" x2="880" y2="284" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="845" y="276" class="dg-lbl" text-anchor="middle">像素</text>
+
+        <!-- 控制 → 数据（选图案）标签放在水平段上，避免压到「拼图核心」左边框 -->
+        <path d="M530,290 H570 V430 H660 V470" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="574" y="424" class="dg-lbl">pattern_sel</text>
+
+        <!-- 数据 → 核心 -->
+        <line x1="700" y1="470" x2="700" y2="328" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="708" y="404" class="dg-lbl">target_mask</text>
+        <text x="708" y="420" class="dg-lbl">rel_mask · rnd</text>
+
+        <!-- 控制 → 显示（状态与倒计时）绕下方，避开点阵像素线 -->
+        <path d="M530,315 H560 V690 H1020 V328" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="566" y="640" class="dg-lbl">state · level · cnt</text>
+
+        <!-- 反馈：核心 → 控制 -->
+        <path d="M670,240 V190 H490 V240" class="dg-wire-fb" marker-end="url(#b2)"/>
+        <text x="580" y="182" class="dg-lbl-fb" text-anchor="middle">all_locked · solved</text>
+
+        <!-- 控制 → 音效：必须绕最下方。若在 y≈307 直接右拐，
+             会横穿「拼图核心」与「显示子系统」两个方框（y 240~328 正是框内） -->
+        <path d="M500,328 V730 H1180 V558" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="1170" y="724" class="dg-lbl" text-anchor="end">sound_sel</text>
+      </svg>
+    </div>
+
+    <div class="footnote">
+      <span>橙线 = 节拍使能（由 clk_gen 扇出）</span>
+      <span>黑线 = 数据流</span>
+      <span>橙色虚线 = 唯一的反馈回路</span>
+      <span>本层每框 = 一个<b>功能子系统</b>，展开见 DWG-02</span>
+    </div>
+  </section>
+
+  <div>
+    <h2>第一层 · 为什么分成这七块</h2>
+    <div class="notes">
+      <div class="note">
+        <h3>自顶向下的第一刀：按信号流切</h3>
+        <p>
+          从需求出发先问「一个玩家看到什么、按什么」——于是得到
+          <b>输入 → 控制 → 逻辑 → 输出</b> 四条链。七块里
+          <code>游戏控制</code> 是枢纽，<code>拼图核心</code> 与
+          <code>图案与随机数据</code> 是它的下游，<code>显示子系统</code> 汇聚两路数据。
+        </p>
+      </div>
+      <div class="note">
+        <h3>第二刀才是分模块</h3>
+        <p>
+          每一块在 DWG-02 里再展开成<b>一个或多个 .vhd 实体</b>。
+          例如「显示子系统」拆成格式化、数码管扫描、点阵扫描三个实体——
+          它们职责不同、时钟相同、可以各自独立仿真。
+        </p>
+      </div>
+      <div class="note">
+        <h3>为什么要分两层画</h3>
+        <p>
+          十二个实体平铺在一张图上，读不出结构，答辩时也讲不出主线。
+          分两层后：<b>DWG-01 讲系统怎么组织</b>（一页看懂），
+          <b>DWG-02 讲每个模块怎么实现</b>（老师抽问用）。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 图幅 2：模块级框图（DWG-01 展开） ==================== -->
+  <section class="sheet">
+    <div class="titleblock">
+      <span class="dwg">DWG-02</span>
+      <span class="nm">模块级框图 · 第二层（DWG-01 展开到实体）</span>
+      <span class="rev">比例 N/A · 共 3 图 · 第 2 图</span>
     </div>
 
     <div class="canvas">
@@ -308,7 +477,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
   </section>
 
   <div>
-    <h2>图例 · 按职责分类着色</h2>
+    <h2>DWG-02 图例 · 按职责分类着色</h2>
     <div class="legend">
       <div class="legend-item">
         <span class="swatch" style="background:var(--c-time-bg);border-color:var(--c-time)"></span>
@@ -325,12 +494,12 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
     </div>
   </div>
 
-  <!-- ==================== 图幅 2：状态转移图 ==================== -->
+  <!-- ==================== 图幅 3：状态转移图 ==================== -->
   <section class="sheet">
     <div class="titleblock">
-      <span class="dwg">DWG-02</span>
+      <span class="dwg">DWG-03</span>
       <span class="nm">game_fsm 状态转移图</span>
-      <span class="rev">比例 N/A · 共 2 图 · 第 2 图</span>
+      <span class="rev">比例 N/A · 共 3 图 · 第 3 图</span>
     </div>
 
     <div class="canvas">
@@ -468,9 +637,11 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
       <div class="note">
         <h3>改图规矩</h3>
         <p>
-          框图里<b>一个矩形框 = 一个 <code>.vhd</code> 文件 = 一个实体</b>。
-          改了模块接口就必须同时改这张图和
-          <code>docs/01-系统设计.md</code> 的接口表——老师会照着图抽模块提问。
+          <b>DWG-02</b> 里：一个矩形框 = 一个 <code>.vhd</code> 文件 = 一个实体。
+          <b>DWG-01</b> 里：一个矩形框 = 一个<b>功能子系统</b>，可含多个实体，
+          框内已列出所含实体名。
+          改了模块接口必须同时改两张图和 <code>docs/01-系统设计.md</code> 的接口表——
+          老师会照着图抽模块提问。
         </p>
       </div>
     </div>
