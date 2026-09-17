@@ -160,7 +160,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
     <div class="titleblock">
       <span class="dwg">DWG-01</span>
       <span class="nm">系统总体框图 · 第一层（功能子系统）</span>
-      <span class="rev">布局取自飞书白板稿 · 共 3 图 · 第 1 图</span>
+      <span class="rev">布局取自飞书白板稿（2026-09-17 第 2 版）· 共 3 图 · 第 1 图</span>
     </div>
 
     <div class="canvas">
@@ -181,17 +181,22 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <rect x="150" y="190" width="1450" height="930" rx="10" class="dg-region"/>
         <text x="170" y="216" class="dg-lbl">puzzle_top 内部 · 7 个功能子系统</text>
 
-        <!-- ·········· 时钟与节拍（画成椭圆，与方框模块区分：它只有扇出、没有数据流） ·········· -->
-        <ellipse cx="875" cy="265" rx="80" ry="48" class="dg-time"/>
-        <text x="875" y="258" class="dg-name" text-anchor="middle">时钟与节拍</text>
-        <text x="875" y="280" class="dg-ent" text-anchor="middle">clk_gen</text>
+        <!-- ·········· 时钟与节拍（画成椭圆，与方框模块区分：它只有扇出、没有数据流） ··········
+             50MHz 的来源直接写在椭圆里、不再单独画一条输入线 ——
+             它是这一子系统的属性（分频基准），不是第二路控制输入。
+             真正需要从图外进来的只有 SW7（它参与复位：rst = (not SW7) or por_rst）。 -->
+        <ellipse cx="875" cy="265" rx="95" ry="50" class="dg-time"/>
+        <text x="875" y="247" class="dg-name" text-anchor="middle">时钟与节拍</text>
+        <text x="875" y="268" class="dg-ent" text-anchor="middle">clk_gen</text>
+        <text x="875" y="289" class="dg-sub" text-anchor="middle">50MHz · 5 档单周期节拍</text>
 
-        <line x1="60" y1="245" x2="803" y2="245" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="70" y="237" class="dg-io">sw7 系统开关</text>
-        <line x1="60" y1="285" x2="803" y2="285" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="70" y="277" class="dg-io">clk 50 MHz</text>
+        <line x1="60" y1="265" x2="773" y2="265" class="dg-wire" marker-end="url(#b1)"/>
+        <!-- 右对齐到 x=132：容器左边界在 x=150，左对齐会让「关」字贴到虚线上。
+             留 18 单位余量（≈ 2 个字符宽）；文字向左生长才是安全的——
+             画布左边界在 x=0，这条标签才 79 单位宽，还有 53 单位余量。 -->
+        <text x="132" y="257" class="dg-io" text-anchor="end">sw7 系统开关</text>
 
-        <path d="M875,313 V360" class="dg-rail"/>
+        <path d="M875,315 V360" class="dg-rail"/>
         <line x1="245" y1="360" x2="1585" y2="360" class="dg-rail"/>
         <text x="250" y="352" class="dg-lbl">clk 与节拍总线 · tick_8k · tick_1k · tick_100 · tick_2hz · tick_1hz</text>
 
@@ -291,7 +296,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
              走「节拍总线下方、方框上方」的走廊（y=395），
              起点终点都取在两处节拍下引线之间，不与任何竖线相交 -->
         <path d="M1050,430 V395 H680 V430" class="dg-wire-fb" marker-end="url(#b2)"/>
-        <text x="865" y="386" class="dg-lbl-fb" text-anchor="middle">all_locked · solved</text>
+        <text x="865" y="386" class="dg-lbl-fb" text-anchor="middle">all_locked · solved（反馈游戏是否结束）</text>
       </svg>
     </div>
 
