@@ -1,0 +1,479 @@
+<title>点阵拼图系统图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
+
+<style>
+/* ============ 令牌：亮色为基准，暗色只覆盖令牌 ============ */
+:root{
+  --bg:#F7F5F1; --surface:#FFFFFF; --ink:#1B1A17; --muted:#6E6A62;
+  --rule:#DCD8D0; --rule-soft:#EAE7E0; --accent:#9A6206;
+
+  /* 图纸本身永远是"纸"——两种主题下都不变，
+     因为图要导出 PNG 贴进报告、可能要打印 */
+  --paper:#FDFCFA; --paper-rule:#CFC9BE; --paper-ink:#1B1A17;
+  --paper-muted:#6E6A62; --paper-grid:#EDE9E1;
+  --c-time:#9A6206; --c-time-bg:#FBF2E0;
+  --c-driver:#9E332A; --c-driver-bg:#FBEDEA;
+  --c-data:#1D6B45; --c-data-bg:#EAF4EE;
+  --c-wire:#4A4844; --c-fb:#8A5A00;
+  --c-ok:#1D6B45; --c-ok-bg:#EAF4EE;
+  --c-bad:#9E332A; --c-bad-bg:#FBEDEA;
+  --c-init:#5C5850; --c-init-bg:#F1EFEA;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141311; --surface:#1C1B18; --ink:#EAE7E0; --muted:#97928A;
+    --rule:#322F2A; --rule-soft:#282520; --accent:#E0A24A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141311; --surface:#1C1B18; --ink:#EAE7E0; --muted:#97928A;
+  --rule:#322F2A; --rule-soft:#282520; --accent:#E0A24A;
+}
+:root[data-theme="light"]{ --accent:#9A6206; }
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Noto Sans SC",-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+  font-size:15px; line-height:1.7;
+  padding-block:2.5rem 4rem;
+  padding-inline:clamp(16px,4vw,48px);
+}
+.wrap{max-width:1240px;margin-inline:auto;display:flex;flex-direction:column;gap:2.5rem}
+
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+
+/* ============ 页眉 ============ */
+.masthead{display:flex;flex-direction:column;gap:1rem;border-bottom:2px solid var(--ink);padding-bottom:1.25rem}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:500;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+}
+h1{
+  font-size:clamp(1.75rem,4.5vw,2.6rem);font-weight:900;line-height:1.15;
+  letter-spacing:-.015em;margin:0;text-wrap:balance;
+}
+.standfirst{margin:0;max-width:62ch;color:var(--muted);font-size:.95rem}
+.meta-row{
+  display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;
+  font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);
+}
+.meta-row b{color:var(--ink);font-weight:600}
+
+/* ============ 图幅 ============ */
+.sheet{display:flex;flex-direction:column;gap:0;background:var(--surface);
+  border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.titleblock{
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:1rem 1.5rem;
+  padding:.7rem 1.1rem;border-bottom:1px solid var(--rule);
+  background:linear-gradient(var(--rule-soft),transparent);
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.06em;
+}
+.titleblock .dwg{font-weight:600;color:var(--accent);white-space:nowrap}
+.titleblock .nm{font-weight:600;color:var(--ink);font-size:13px;font-family:"Noto Sans SC",sans-serif;letter-spacing:0}
+.titleblock .rev{color:var(--muted);white-space:nowrap}
+@media(max-width:640px){ .titleblock{grid-template-columns:1fr;gap:.35rem} }
+
+.canvas{overflow-x:auto;background:var(--paper);padding:0}
+.canvas svg{display:block;height:auto;min-width:900px;width:100%}
+.footnote{
+  padding:.65rem 1.1rem;border-top:1px solid var(--rule);
+  font-size:12.5px;color:var(--muted);font-family:"IBM Plex Mono",monospace;
+  display:flex;flex-wrap:wrap;gap:.35rem 1.25rem;
+}
+
+/* ============ 图例 ============ */
+.legend{display:grid;gap:.65rem;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:1.25rem}
+.legend-item{display:flex;align-items:flex-start;gap:.6rem;font-size:12.5px;line-height:1.5}
+.swatch{width:15px;height:15px;border-radius:2px;border:1.5px solid;flex:none;margin-top:3px}
+.legend-item b{font-weight:600}
+.legend-item span{color:var(--muted)}
+
+/* ============ 说明区 ============ */
+.notes{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.note{border-left:2px solid var(--accent);padding-left:.9rem}
+.note h3{margin:0 0 .3rem;font-size:13px;font-weight:700;letter-spacing:.02em}
+.note p{margin:0;font-size:13px;color:var(--muted);line-height:1.65}
+.note code{font-family:"IBM Plex Mono",monospace;font-size:12px;
+  background:var(--rule-soft);padding:.1em .35em;border-radius:2px;color:var(--ink)}
+
+h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
+
+/* ============ SVG 内部样式（图纸配色，不随主题变） ============ */
+.dg-box{fill:#FFFFFF;stroke:var(--paper-rule);stroke-width:1.5}
+.dg-time{fill:var(--c-time-bg);stroke:var(--c-time)}
+.dg-driver{fill:var(--c-driver-bg);stroke:var(--c-driver)}
+.dg-data{fill:var(--c-data-bg);stroke:var(--c-data)}
+.dg-region{fill:none;stroke:var(--c-wire);stroke-width:1.3;stroke-dasharray:5 4;opacity:.65}
+.dg-t{font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:600;fill:var(--paper-ink)}
+.dg-sub{font-family:"IBM Plex Mono",monospace;font-size:10.5px;fill:var(--paper-muted)}
+.dg-wire{stroke:var(--c-wire);stroke-width:1.6;fill:none}
+.dg-wire-fb{stroke:var(--c-fb);stroke-width:1.6;fill:none;stroke-dasharray:7 4}
+.dg-lbl{font-family:"IBM Plex Mono",monospace;font-size:11px;fill:var(--c-wire)}
+.dg-lbl-fb{font-family:"IBM Plex Mono",monospace;font-size:11px;fill:var(--c-fb);font-weight:500}
+.dg-io{font-family:"IBM Plex Mono",monospace;font-size:11.5px;fill:var(--paper-ink);font-weight:500}
+.dg-dev{font-family:"Noto Sans SC",sans-serif;font-size:12.5px;font-weight:500;fill:var(--paper-ink)}
+.dg-grid{stroke:var(--paper-grid);stroke-width:1}
+
+/* 状态图 */
+.st{stroke-width:2}
+.st-name{font-family:"IBM Plex Mono",monospace;font-size:13.5px;font-weight:600;fill:var(--paper-ink)}
+.st-enc{font-family:"IBM Plex Mono",monospace;font-size:10.5px;fill:var(--paper-muted)}
+.st-lbl{font-family:"IBM Plex Mono",monospace;font-size:11px;fill:var(--c-wire)}
+.st-lbl-hi{font-family:"Noto Sans SC",sans-serif;font-size:11px;fill:var(--c-wire)}
+.st-lbl-ok{font-family:"Noto Sans SC",sans-serif;font-size:11px;fill:var(--c-ok);font-weight:500}
+.st-lbl-bad{font-family:"Noto Sans SC",sans-serif;font-size:11px;fill:var(--c-bad);font-weight:500}
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">题目 4 · 简易拼图游戏 · 设计图表</div>
+    <h1>点阵拼图系统图</h1>
+    <p class="standfirst">
+      两张图：系统的总体框图，以及 <span class="mono">game_fsm</span> 的状态转移图。
+      每张图都画在独立的图幅上，框内名称与 <span class="mono">rtl/*.vhd</span> 的实体名逐一对应。
+    </p>
+    <div class="meta-row">
+      <span>器件 <b>EPM1270T144C5</b></span>
+      <span>时钟 <b>50 MHz</b></span>
+      <span>模块 <b>12 + 2</b></span>
+      <span>版本 <b>v1 · 2026-09-17</b></span>
+    </div>
+  </header>
+
+  <!-- ==================== 图幅 1：总体框图 ==================== -->
+  <section class="sheet">
+    <div class="titleblock">
+      <span class="dwg">DWG-01</span>
+      <span class="nm">系统总体框图</span>
+      <span class="rev">比例 N/A · 共 2 图 · 第 1 图</span>
+    </div>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1520 880" role="img" aria-label="拼图游戏系统总体框图">
+        <defs>
+          <marker id="a1" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#4A4844"/>
+          </marker>
+          <marker id="a2" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#8A5A00"/>
+          </marker>
+        </defs>
+
+        <!-- ·········· 外部输入 ·········· -->
+        <line x1="25" y1="133" x2="80" y2="133" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="52" y="124" class="dg-io" text-anchor="middle">clk</text>
+
+        <line x1="25" y1="722" x2="80" y2="722" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="52" y="713" class="dg-io" text-anchor="middle">kp_row</text>
+        <line x1="80" y1="756" x2="25" y2="756" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="52" y="775" class="dg-io" text-anchor="middle">kp_col</text>
+
+        <!-- ·········· C1：时钟与输入 ·········· -->
+        <rect x="80" y="95" width="160" height="76" rx="3" class="dg-time"/>
+        <text x="160" y="127" class="dg-t" text-anchor="middle">clk_gen</text>
+        <text x="160" y="146" class="dg-sub" text-anchor="middle">分频 · 上电复位</text>
+
+        <rect x="80" y="700" width="160" height="76" rx="3" class="dg-driver"/>
+        <text x="160" y="732" class="dg-t" text-anchor="middle">keypad_scan</text>
+        <text x="160" y="751" class="dg-sub" text-anchor="middle">tick_1k · 20ms 消抖</text>
+
+        <!-- ·········· C2：调度 ·········· -->
+        <rect x="310" y="95" width="180" height="90" rx="3" class="dg-time"/>
+        <text x="400" y="130" class="dg-t" text-anchor="middle">game_fsm</text>
+        <text x="400" y="150" class="dg-sub" text-anchor="middle">tick_1hz · tick_2hz</text>
+        <text x="400" y="166" class="dg-sub" text-anchor="middle">状态 · 倒计时 · 关卡</text>
+
+        <!-- ·········· C3：数据 ·········· -->
+        <rect x="560" y="95" width="160" height="76" rx="3" class="dg-data"/>
+        <text x="640" y="127" class="dg-t" text-anchor="middle">disp_format</text>
+        <text x="640" y="146" class="dg-sub" text-anchor="middle">纯组合 · 状态→BCD</text>
+
+        <rect x="560" y="285" width="160" height="76" rx="3" class="dg-data"/>
+        <text x="640" y="317" class="dg-t" text-anchor="middle">pattern_rom</text>
+        <text x="640" y="336" class="dg-sub" text-anchor="middle">纯组合 · 图案掩码</text>
+
+        <rect x="560" y="425" width="160" height="76" rx="3" class="dg-data"/>
+        <text x="640" y="457" class="dg-t" text-anchor="middle">piece_rom</text>
+        <text x="640" y="476" class="dg-sub" text-anchor="middle">纯组合 · 零片形状</text>
+
+        <rect x="560" y="565" width="160" height="76" rx="3" class="dg-data"/>
+        <text x="640" y="597" class="dg-t" text-anchor="middle">rng_lfsr</text>
+        <text x="640" y="616" class="dg-sub" text-anchor="middle">8 位 · 周期 255</text>
+
+        <!-- ·········· C4：核心 ·········· -->
+        <rect x="820" y="385" width="180" height="90" rx="3" class="dg-data"/>
+        <text x="910" y="420" class="dg-t" text-anchor="middle">puzzle_ctrl</text>
+        <text x="910" y="440" class="dg-sub" text-anchor="middle">空间引擎 · 无计数器</text>
+        <text x="910" y="456" class="dg-sub" text-anchor="middle">锚点 / 钳位 / 判定</text>
+
+        <!-- ·········· C5：输出驱动 ·········· -->
+        <rect x="1070" y="95" width="160" height="76" rx="3" class="dg-driver"/>
+        <text x="1150" y="127" class="dg-t" text-anchor="middle">seg_scan</text>
+        <text x="1150" y="146" class="dg-sub" text-anchor="middle">tick_1k · 消隐扫描</text>
+
+        <rect x="1070" y="386" width="160" height="88" rx="3" class="dg-driver"/>
+        <text x="1150" y="420" class="dg-t" text-anchor="middle">dot_matrix_scan</text>
+        <text x="1150" y="440" class="dg-sub" text-anchor="middle">tick_1k · 行扫描</text>
+        <text x="1150" y="456" class="dg-sub" text-anchor="middle">消隐防鬼影</text>
+
+        <rect x="1070" y="675" width="160" height="76" rx="3" class="dg-driver"/>
+        <text x="1150" y="707" class="dg-t" text-anchor="middle">buzzer_ctrl</text>
+        <text x="1150" y="726" class="dg-sub" text-anchor="middle">tick_8k · 音效</text>
+
+        <!-- ·········· 输出级门控（虚线区，非模块） ·········· -->
+        <rect x="1250" y="95" width="90" height="656" rx="3" class="dg-region"/>
+        <text x="1272" y="423" class="dg-lbl" text-anchor="middle"
+              transform="rotate(-90 1272 423)">输出级门控 sys_en = SW7</text>
+        <line x1="1272" y1="810" x2="1272" y2="751" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="1272" y="828" class="dg-io" text-anchor="middle">sw7</text>
+
+        <!-- 门控 → 器件 -->
+        <line x1="1340" y1="133" x2="1372" y2="133" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="1382" y="137" class="dg-dev">数码管 seg / cat</text>
+        <line x1="1340" y1="430" x2="1372" y2="430" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="1382" y="434" class="dg-dev">8×8 双色点阵</text>
+        <line x1="1340" y1="713" x2="1372" y2="713" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="1382" y="717" class="dg-dev">蜂鸣器</text>
+
+        <!-- ·········· 连线 ·········· -->
+        <!-- 1 clk_gen → game_fsm -->
+        <line x1="240" y1="133" x2="310" y2="133" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="275" y="124" class="dg-lbl" text-anchor="middle">rst</text>
+
+        <!-- 2 clk_gen → keypad_scan -->
+        <path d="M160,171 V700" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="168" y="440" class="dg-lbl">tick_1k</text>
+
+        <!-- 3 keypad_scan → game_fsm（从左缘进） -->
+        <path d="M240,738 H265 V165 H310" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="273" y="500" class="dg-lbl">key_code</text>
+        <text x="273" y="516" class="dg-lbl">key_press</text>
+
+        <!-- 4 game_fsm → disp_format -->
+        <line x1="490" y1="133" x2="560" y2="133" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="525" y="124" class="dg-lbl" text-anchor="middle">state</text>
+
+        <!-- 5 disp_format → seg_scan -->
+        <line x1="720" y1="133" x2="1070" y2="133" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="895" y="124" class="dg-lbl" text-anchor="middle">disp_val · blank</text>
+
+        <!-- 6 game_fsm → pattern_rom -->
+        <path d="M400,185 V323 H560" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="408" y="303" class="dg-lbl">pattern_sel</text>
+
+        <!-- 7 pattern_rom → puzzle_ctrl -->
+        <path d="M720,323 H770 V405 H820" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="728" y="315" class="dg-lbl">target_mask</text>
+
+        <!-- 8 piece_rom → puzzle_ctrl -->
+        <path d="M720,463 H785 V435 H820" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="728" y="483" class="dg-lbl">rel_mask</text>
+
+        <!-- 9 rng_lfsr → puzzle_ctrl -->
+        <path d="M720,603 H800 V465 H820" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="728" y="623" class="dg-lbl">rnd</text>
+
+        <!-- 10 puzzle_ctrl → dot_matrix_scan -->
+        <line x1="1000" y1="430" x2="1070" y2="430" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="1035" y="421" class="dg-lbl" text-anchor="middle">px_red</text>
+        <text x="1035" y="450" class="dg-lbl" text-anchor="middle">px_green</text>
+
+        <!-- 11 反馈：puzzle_ctrl → game_fsm -->
+        <path d="M910,385 V240 H450 V185" class="dg-wire-fb" marker-end="url(#a2)"/>
+        <text x="670" y="232" class="dg-lbl-fb" text-anchor="middle">all_locked · solved</text>
+
+        <!-- 12 game_fsm → buzzer_ctrl -->
+        <path d="M320,185 V713 H1070" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="328" y="690" class="dg-lbl">sound_sel</text>
+
+        <!-- 输出驱动 → 门控 -->
+        <line x1="1230" y1="133" x2="1250" y2="133" class="dg-wire"/>
+        <line x1="1230" y1="430" x2="1250" y2="430" class="dg-wire"/>
+        <line x1="1230" y1="713" x2="1250" y2="713" class="dg-wire"/>
+      </svg>
+    </div>
+
+    <div class="footnote">
+      <span>框内小字 = 该模块使用的节拍使能</span>
+      <span>橙色虚线 = 反馈路径</span>
+      <span>灰色虚线 = 代码区，不是模块</span>
+    </div>
+  </section>
+
+  <div>
+    <h2>图例 · 按职责分类着色</h2>
+    <div class="legend">
+      <div class="legend-item">
+        <span class="swatch" style="background:var(--c-time-bg);border-color:var(--c-time)"></span>
+        <div><b>时序与调度</b><br><span>只管时间——状态、倒计时、节拍。不含任何坐标运算。</span></div>
+      </div>
+      <div class="legend-item">
+        <span class="swatch" style="background:var(--c-driver-bg);border-color:var(--c-driver)"></span>
+        <div><b>器件驱动</b><br><span>与外部器件的电气特性强相关，与游戏规则无关。</span></div>
+      </div>
+      <div class="legend-item">
+        <span class="swatch" style="background:var(--c-data-bg);border-color:var(--c-data)"></span>
+        <div><b>数据与规则</b><br><span>纯逻辑与查表。不等时钟，给输入立刻出输出。</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 图幅 2：状态转移图 ==================== -->
+  <section class="sheet">
+    <div class="titleblock">
+      <span class="dwg">DWG-02</span>
+      <span class="nm">game_fsm 状态转移图</span>
+      <span class="rev">比例 N/A · 共 2 图 · 第 2 图</span>
+    </div>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1260 660" role="img" aria-label="game_fsm 状态转移图">
+        <defs>
+          <marker id="a3" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#4A4844"/>
+          </marker>
+          <marker id="a4" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1D6B45"/>
+          </marker>
+          <marker id="a5" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#9E332A"/>
+          </marker>
+        </defs>
+
+        <!-- 复位入口 -->
+        <line x1="20" y1="288" x2="70" y2="288" class="dg-wire" marker-end="url(#a3)"/>
+        <text x="45" y="279" class="dg-io" text-anchor="middle">rst</text>
+
+        <!-- 状态 1：自检 -->
+        <rect x="70" y="250" width="150" height="76" rx="3" class="st" style="stroke:#5C5850;fill:#F1EFEA"/>
+        <text x="145" y="284" class="st-name" text-anchor="middle">S_SELF_TEST</text>
+        <text x="145" y="303" class="st-enc" text-anchor="middle">"000"</text>
+
+        <!-- 状态 2：待机 -->
+        <rect x="290" y="250" width="140" height="76" rx="3" class="st" style="stroke:#5C5850;fill:#F1EFEA"/>
+        <text x="360" y="284" class="st-name" text-anchor="middle">S_IDLE</text>
+        <text x="360" y="303" class="st-enc" text-anchor="middle">"001"</text>
+
+        <!-- 状态 3：预览 -->
+        <rect x="500" y="250" width="150" height="76" rx="3" class="st" style="stroke:#9A6206;fill:#FBF2E0"/>
+        <text x="575" y="284" class="st-name" text-anchor="middle">S_PREVIEW</text>
+        <text x="575" y="303" class="st-enc" text-anchor="middle">"010"</text>
+
+        <!-- 状态 4：拼图中 -->
+        <rect x="730" y="250" width="160" height="76" rx="3" class="st" style="stroke:#9A6206;fill:#FBF2E0"/>
+        <text x="810" y="284" class="st-name" text-anchor="middle">S_PLAYING</text>
+        <text x="810" y="303" class="st-enc" text-anchor="middle">"011"</text>
+
+        <!-- 状态 5：胜利 -->
+        <rect x="990" y="110" width="150" height="76" rx="3" class="st" style="stroke:#1D6B45;fill:#EAF4EE"/>
+        <text x="1065" y="144" class="st-name" text-anchor="middle">S_WIN</text>
+        <text x="1065" y="163" class="st-enc" text-anchor="middle">"100"</text>
+
+        <!-- 状态 6：失败 -->
+        <rect x="990" y="400" width="150" height="76" rx="3" class="st" style="stroke:#9E332A;fill:#FBEDEA"/>
+        <text x="1065" y="434" class="st-name" text-anchor="middle">S_FAIL</text>
+        <text x="1065" y="453" class="st-enc" text-anchor="middle">"101"</text>
+
+        <!-- T2 -->
+        <line x1="220" y1="288" x2="290" y2="288" class="dg-wire" marker-end="url(#a3)"/>
+        <text x="255" y="279" class="st-lbl" text-anchor="middle">2 秒到</text>
+
+        <!-- T3 -->
+        <line x1="430" y1="288" x2="500" y2="288" class="dg-wire" marker-end="url(#a3)"/>
+        <text x="465" y="279" class="st-lbl-hi" text-anchor="middle">按「开始」</text>
+
+        <!-- T4 -->
+        <line x1="650" y1="288" x2="730" y2="288" class="dg-wire" marker-end="url(#a3)"/>
+        <text x="690" y="279" class="st-lbl" text-anchor="middle">5 秒到</text>
+
+        <!-- T5 拼对（第二关）→ WIN -->
+        <path d="M860,250 V148 H990" class="dg-wire" style="stroke:#1D6B45" marker-end="url(#a4)"/>
+        <text x="872" y="200" class="st-lbl-ok">全部锁定 且 拼对</text>
+        <text x="872" y="216" class="st-lbl-ok">（第二关）</text>
+
+        <!-- T6 拼错 / 超时 → FAIL -->
+        <path d="M860,326 V438 H990" class="dg-wire" style="stroke:#9E332A" marker-end="url(#a5)"/>
+        <text x="872" y="380" class="st-lbl-bad">全部锁定但拼错</text>
+        <text x="872" y="396" class="st-lbl-bad">或 倒计时归零</text>
+
+        <!-- T7 第一关拼对 → 回 PREVIEW -->
+        <path d="M770,250 V170 H575 V250" class="dg-wire" marker-end="url(#a3)"/>
+        <text x="672" y="162" class="st-lbl-hi" text-anchor="middle">第一关拼对 · 关卡←2 · 换图案</text>
+
+        <!-- T8+T9 返回 IDLE -->
+        <path d="M1140,148 H1200 V540" class="dg-wire"/>
+        <path d="M1140,438 H1200" class="dg-wire"/>
+        <path d="M1200,540 H360 V326" class="dg-wire" marker-end="url(#a3)"/>
+        <text x="780" y="532" class="st-lbl-hi" text-anchor="middle">按「开始」重开一局（采样新种子）</text>
+
+        <!-- 初始标注 -->
+        <text x="145" y="352" class="st-enc" text-anchor="middle">上电 或 SW7=0</text>
+      </svg>
+    </div>
+
+    <div class="footnote">
+      <span>状态编码 3 位（非 one-hot）</span>
+      <span>绿 = 成功路径</span>
+      <span>红 = 失败路径</span>
+      <span>灰 = 无条件迁移</span>
+    </div>
+  </section>
+
+  <div>
+    <h2>两条失败路径</h2>
+    <div class="notes">
+      <div class="note">
+        <h3>① 拼错</h3>
+        <p>
+          全部零片都按下「确认」锁定后，若零片掩码的并集 ≠ 目标图案，<b>立即判失败</b>，
+          不等倒计时走完。判据是并集而不是逐块比对——因为三块零片恰好有
+          <b>2 种合法铺法</b>，逐块比对会把其中一种正确解误判为失败。
+        </p>
+      </div>
+      <div class="note">
+        <h3>② 超时</h3>
+        <p>
+          倒计时归零时仍有零片未锁定。第一关 30 秒、第二关 40 秒，
+          倒计时器直接用<b>两位 BCD</b> 递减，因此综合结果里不会出现十进制除法器。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <h2>拿去 draw.io 用</h2>
+    <div class="notes">
+      <div class="note">
+        <h3>导入方式</h3>
+        <p>
+          浏览器打开本文件 → 右键图形 → 另存为 SVG，或在 draw.io 里选
+          <code>File ▸ Import</code> 直接导入这个 HTML 里的 SVG 源码。
+          导入后<b>每个矩形框、每条箭头都是独立可编辑对象</b>，不是一张位图。
+        </p>
+      </div>
+      <div class="note">
+        <h3>为什么不做成深色</h3>
+        <p>
+          两张图在明暗两种主题下都画在<b>白纸上</b>。这些图最终要导出 PNG 贴进实验报告，
+          而报告是要打印的——白底深线才印得清楚。
+        </p>
+      </div>
+      <div class="note">
+        <h3>改图规矩</h3>
+        <p>
+          框图里<b>一个矩形框 = 一个 <code>.vhd</code> 文件 = 一个实体</b>。
+          改了模块接口就必须同时改这张图和
+          <code>docs/01-系统设计.md</code> 的接口表——老师会照着图抽模块提问。
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
