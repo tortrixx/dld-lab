@@ -1,0 +1,131 @@
+# ============================================================
+# Quartus II 9.1 工程设置 —— 题目4 简易拼图游戏
+# 器件: Altera MAX II  EPM1270T144C5  (144 脚 TQFP, C5 速度等级)
+# 开发板: MAXII 数字逻辑实验开发板 (LCM12864 液晶版)
+# ============================================================
+# 引脚分配依据: 《MAXII数字实验板（LCM12864液晶版）》开发板手册
+# 引脚号只允许出现在本文件中（见 CLAUDE.md §2 硬约束 3）
+# ============================================================
+
+set_global_assignment -name FAMILY "MAX II"
+set_global_assignment -name DEVICE EPM1270T144C5
+
+# 当前顶层为硬件自检顶层；整机集成后改为 puzzle_top
+# （见 PROGRESS.md 阶段 2 / 阶段 4）
+set_global_assignment -name TOP_LEVEL_ENTITY board_test_top
+
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 9.1
+set_global_assignment -name LAST_QUARTUS_VERSION "9.1"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "17:30:00  SEPTEMBER 17, 2026"
+
+# VHDL 输入版本固定 1993（见 CLAUDE.md §10.1）
+set_global_assignment -name VHDL_INPUT_VERSION VHDL_1993
+
+# 未使用引脚统一设为输入三态（安全默认，避免意外驱动外部器件）
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
+
+# ------------------------------------------------------------
+# 源文件（路径相对于本工程目录 quartus/）
+# ------------------------------------------------------------
+set_global_assignment -name VHDL_FILE ../rtl/puzzle_pkg.vhd
+set_global_assignment -name VHDL_FILE ../rtl/clk_gen.vhd
+set_global_assignment -name VHDL_FILE ../rtl/seg_scan.vhd
+set_global_assignment -name VHDL_FILE ../rtl/dot_matrix_scan.vhd
+set_global_assignment -name VHDL_FILE ../rtl/keypad_scan.vhd
+set_global_assignment -name VHDL_FILE ../rtl/board_test_top.vhd
+
+# ------------------------------------------------------------
+# 引脚分配
+# ------------------------------------------------------------
+
+# ---- 全局时钟  PIN_18 ----
+# 板载可切换, 档位 7 = 50MHz (USER_BTN 切换, LED 指示)
+set_location_assignment PIN_18 -to clk
+
+# ---- 系统开关  SW7 = PIN_125 ----
+set_location_assignment PIN_125 -to sw7
+
+# ---- 8x8 双色点阵 行 (低有效) ----
+set_location_assignment PIN_8 -to dot_row[0]
+set_location_assignment PIN_7 -to dot_row[1]
+set_location_assignment PIN_6 -to dot_row[2]
+set_location_assignment PIN_5 -to dot_row[3]
+set_location_assignment PIN_4 -to dot_row[4]
+set_location_assignment PIN_3 -to dot_row[5]
+set_location_assignment PIN_2 -to dot_row[6]
+set_location_assignment PIN_1 -to dot_row[7]
+
+# ---- 8x8 双色点阵 红色列 (高有效) ----
+set_location_assignment PIN_22 -to dot_colr[0]
+set_location_assignment PIN_21 -to dot_colr[1]
+set_location_assignment PIN_16 -to dot_colr[2]
+set_location_assignment PIN_15 -to dot_colr[3]
+set_location_assignment PIN_14 -to dot_colr[4]
+set_location_assignment PIN_13 -to dot_colr[5]
+set_location_assignment PIN_12 -to dot_colr[6]
+set_location_assignment PIN_11 -to dot_colr[7]
+
+# ---- 8x8 双色点阵 绿色列 (高有效) ----
+set_location_assignment PIN_45 -to dot_colg[0]
+set_location_assignment PIN_44 -to dot_colg[1]
+set_location_assignment PIN_43 -to dot_colg[2]
+set_location_assignment PIN_42 -to dot_colg[3]
+set_location_assignment PIN_41 -to dot_colg[4]
+set_location_assignment PIN_40 -to dot_colg[5]
+set_location_assignment PIN_39 -to dot_colg[6]
+set_location_assignment PIN_38 -to dot_colg[7]
+
+# ---- 数码管段 AA,AB,AC,AD,AE,AF,AG,AP (高有效) ----
+set_location_assignment PIN_62 -to seg[0]
+set_location_assignment PIN_59 -to seg[1]
+set_location_assignment PIN_58 -to seg[2]
+set_location_assignment PIN_57 -to seg[3]
+set_location_assignment PIN_55 -to seg[4]
+set_location_assignment PIN_53 -to seg[5]
+set_location_assignment PIN_52 -to seg[6]
+set_location_assignment PIN_51 -to seg[7]
+
+# ---- 数码管位选 CAT0~CAT7 (低有效) ----
+# CAT7 -> DISP7(最左) ... CAT0 -> DISP0(最右)
+set_location_assignment PIN_63 -to cat[0]
+set_location_assignment PIN_66 -to cat[1]
+set_location_assignment PIN_67 -to cat[2]
+set_location_assignment PIN_68 -to cat[3]
+set_location_assignment PIN_69 -to cat[4]
+set_location_assignment PIN_70 -to cat[5]
+set_location_assignment PIN_30 -to cat[6]
+set_location_assignment PIN_31 -to cat[7]
+
+# ---- 4x4 矩阵键盘 列 COL0~COL3 (扫描输出) ----
+set_location_assignment PIN_117 -to kp_col[0]
+set_location_assignment PIN_118 -to kp_col[1]
+set_location_assignment PIN_119 -to kp_col[2]
+set_location_assignment PIN_120 -to kp_col[3]
+
+# ---- 4x4 矩阵键盘 行 ROW0~ROW3 (读入, 按下=1) ----
+# 实物: ROW3 在最上排, ROW0 在最下排
+set_location_assignment PIN_111 -to kp_row[0]
+set_location_assignment PIN_112 -to kp_row[1]
+set_location_assignment PIN_113 -to kp_row[2]
+set_location_assignment PIN_114 -to kp_row[3]
+
+# ---- 蜂鸣器 ----
+set_location_assignment PIN_60 -to buzz
+
+# ---- 16 个 LED (LD0~LD15, 高电平点亮) ----
+set_location_assignment PIN_80  -to ld[0]
+set_location_assignment PIN_79  -to ld[1]
+set_location_assignment PIN_78  -to ld[2]
+set_location_assignment PIN_77  -to ld[3]
+set_location_assignment PIN_76  -to ld[4]
+set_location_assignment PIN_75  -to ld[5]
+set_location_assignment PIN_74  -to ld[6]
+set_location_assignment PIN_73  -to ld[7]
+set_location_assignment PIN_144 -to ld[8]
+set_location_assignment PIN_143 -to ld[9]
+set_location_assignment PIN_142 -to ld[10]
+set_location_assignment PIN_141 -to ld[11]
+set_location_assignment PIN_140 -to ld[12]
+set_location_assignment PIN_139 -to ld[13]
+set_location_assignment PIN_138 -to ld[14]
+set_location_assignment PIN_137 -to ld[15]

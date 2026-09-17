@@ -1,0 +1,70 @@
+# ============================================================
+# 课程原始资料（版权材料，不入库）
+# 本地保留作参考，其他同学克隆后代码仍可正常构建
+# ============================================================
+*.pdf
+
+# ============================================================
+# Quartus II 编译产物
+# ============================================================
+db/
+incremental_db/
+greybox_tmp/
+*.qws
+*.qdf
+*.bak
+*.rpt
+*.summary
+*.smsg
+*.jdi
+*.pin
+*.sof
+*.pof
+*.pof.*
+*.ttf
+*.hexout
+*.done
+*.eqn
+*.vqm
+*.vo
+*.vho
+*.sdo
+*.ver
+*.syn.rpt
+*.fit.rpt
+*.map.rpt
+*.asm.rpt
+*.tan.rpt
+*.sta.rpt
+*.cdb
+*.hdb
+*.qmsg
+*.ddb
+*.rdb
+*.tdf
+c5_pin_model_dump.txt
+
+# 仿真中间产物
+simulation/
+sim/*.wlf
+sim/*.vcd
+sim/*.history
+*.vwf.bak
+
+# ============================================================
+# 通用
+# ============================================================
+Thumbs.db
+desktop.ini
+.DS_Store
+*.tmp
+*.log
+~$*
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
