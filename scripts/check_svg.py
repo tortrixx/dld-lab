@@ -6,12 +6,21 @@ check_svg.py —— 内嵌 SVG 的三合一校验（浏览器里"能看"不等�
 背景见 ERRORS.md ERR-0004：图表 HTML 在浏览器里渲染正常，但导入 draw.io 会失败。
 浏览器是宽容解析器，它渲染成功**不能证明文件合法**。本脚本补上这一步。
 
-检查三件事：
+检查四件事：
   ① XML 是否合法              —— 注释里出现 `--` 会直接让严格解析器拒绝
   ② 每个绘制形状是否有显式填充 —— 漏了 fill 会渲染成黑色实心块
   ③ 是否还有会被 CSS 类覆盖的
      `stroke=` / `fill=` 属性   —— presentation attribute 特异性为 0，
                                   任何写了同名属性的 CSS 类都会压掉它
+  ④ 走线是否横穿方框           —— 连线从方框内部穿过，图就废了，
+                                  而这种错误浏览器里照样"渲染成功"（见 ERR-0006）
+
+② ③ 的判据**直接从 <style> 块里解析出"每个类声明了哪些属性"**，
+不维护类名白名单——否则样式表里每加一个新类，脚本就会误报（见 ERRORS.md ERR-0005）。
+
+④ 只判定**轴对齐**的线段（水平/垂直），也就是本项目框图里实际使用的走线方式；
+斜线一律跳过。`<path>` 也只解析绝对指令 M/H/V/L，含相对指令的一律放弃解析
+（本项目不产生这种写法）。避开误报的做法见 `_crosses()` 的注释。
 
 用法：
     python scripts/check_svg.py docs/图/系统图.html
@@ -27,12 +36,6 @@ import xml.etree.ElementTree as ET
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-# 会在 CSS 里定义 fill/stroke 的类名 —— 出现在这些类上的属性写法是安全的
-FILL_CLASSES = {"dg-box", "dg-time", "dg-driver", "dg-data", "dg-region",
-                "st", "st-box", "bar", "dot", "px"}
-# 只定义 stroke、fill 固定为 none 的类
-STROKE_ONLY_CLASSES = {"dg-wire", "dg-wire-fb", "wire", "link", "axis", "grid"}
-
 SHAPES = {"rect", "path", "circle", "ellipse", "polygon", "polyline"}
 
 
@@ -42,8 +45,92 @@ def local(tag):
 
 
 def extract_svgs(text):
-    """从 HTML 或纯 SVF 文本里取出所有 <svg>…</svg> 块"""
+    """从 HTML 或纯 SVG 文本里取出所有 <svg>…</svg> 块"""
     return re.findall(r"<svg\b.*?</svg>", text, re.S)
+
+
+def parse_css_classes(text):
+    """
+    解析 <style> 块，返回 {类名: {该类的规则里声明过的属性名}}
+
+    只取"主体选择器"（逗号分组的最后一段复合选择器）里的类名：
+    `.canvas svg` 的宽度是加在 svg 上的，不能算到 .canvas 头上。
+    """
+    props = {}
+    for block in re.findall(r"<style[^>]*>(.*?)</style>", text, re.S):
+        block = re.sub(r"/\*.*?\*/", "", block, flags=re.S)   # 去 CSS 注释
+        for sel_group, body in re.findall(r"([^{}]+)\{([^{}]*)\}", block):
+            declared = set()
+            for decl in body.split(";"):
+                if ":" in decl:
+                    declared.add(decl.split(":", 1)[0].strip().lower())
+            if not declared:
+                continue
+            for sel in sel_group.split(","):
+                parts = re.split(r"[\s>+~]+", sel.strip())
+                subject = parts[-1] if parts else ""
+                for name in re.findall(r"\.([A-Za-z_][\w-]*)", subject):
+                    props.setdefault(name, set()).update(declared)
+    return props
+
+
+def _segments(el):
+    """把 <line> 与轴对齐的 <path> 拆成线段列表 [(x1,y1,x2,y2), ...]"""
+    tag, a = local(el.tag), el.attrib
+    segs = []
+    if tag == "line":
+        try:
+            segs.append((float(a["x1"]), float(a["y1"]),
+                         float(a["x2"]), float(a["y2"])))
+        except (KeyError, ValueError):
+            pass
+    elif tag == "path":
+        d = a.get("d", "")
+        if re.search(r"[a-z]", d):       # 含相对指令 → 不解析
+            return []
+        cur = None
+        for cmd, argstr in re.findall(r"([MHVL])\s*([-\d.,\s]*)", d):
+            nums = [float(n) for n in re.findall(r"-?\d+(?:\.\d+)?", argstr)]
+            if cmd in "HV":              # 单坐标命令：另一坐标沿用当前点
+                for n in nums:
+                    if cur is None:
+                        break
+                    nxt = (n, cur[1]) if cmd == "H" else (cur[0], n)
+                    segs.append((cur[0], cur[1], nxt[0], nxt[1]))
+                    cur = nxt
+            else:                        # M / L：成对坐标
+                for i in range(0, len(nums) - 1, 2):
+                    nxt = (nums[i], nums[i + 1])
+                    if cmd == "L" and cur is not None:
+                        segs.append((cur[0], cur[1], nxt[0], nxt[1]))
+                    cur = nxt
+    return segs
+
+
+def _crosses(seg, rect, eps=1.0):
+    """
+    线段是否穿过矩形**内部**。
+
+    内缩 eps 再判定，是为了不把"贴着框边走"和"箭头落在框边上"算成穿框——
+    那两种是正常画法，箭头的终点本来就该落在方框边界上。
+    只判定轴对齐线段；斜线返回 False。
+    """
+    x1, y1, x2, y2 = seg
+    rx, ry, rw, rh = rect
+    l, t, r, b = rx + eps, ry + eps, rx + rw - eps, ry + rh - eps
+    if l >= r or t >= b:
+        return False
+    if abs(x1 - x2) < 1e-6:                       # 竖线
+        if not (l < x1 < r):
+            return False
+        lo, hi = sorted((y1, y2))
+        return lo < b - eps and hi > t + eps
+    if abs(y1 - y2) < 1e-6:                       # 横线
+        if not (t < y1 < b):
+            return False
+        lo, hi = sorted((x1, x2))
+        return lo < r - eps and hi > l + eps
+    return False
 
 
 def check(path):
@@ -58,7 +145,8 @@ def check(path):
     if not svgs:
         return ["文件里没有找到 <svg> 块"], {}
 
-    stats = {"svg": len(svgs), "shapes": 0, "colored_ok": 0}
+    css = parse_css_classes(text)
+    stats = {"svg": len(svgs), "shapes": 0, "colored_ok": 0, "classes": len(css)}
 
     # ---------- ① XML 合法性 ----------
     for i, sv in enumerate(svgs, 1):
@@ -97,19 +185,24 @@ def check(path):
             cls = set(a.get("class", "").split())
             style = a.get("style", "")
 
-            has_fill = ("fill" in a) or ("fill" in style) \
-                or bool(cls & FILL_CLASSES) or bool(cls & STROKE_ONLY_CLASSES)
-            if not has_fill:
+            # 该元素最终被声明了哪些属性：CSS 类 + 行内 style
+            declared = set()
+            for c in cls:
+                declared |= css.get(c, set())
+            declared |= {d.split(":", 1)[0].strip().lower()
+                         for d in style.split(";") if ":" in d}
+
+            if "fill" in declared or "fill" in a:
+                stats["colored_ok"] += 1
+            else:
                 problems.append(
                     f"SVG #{i} 的 <{local(el.tag)}> 没有显式填充"
                     f"（class={a.get('class', '—')}）→ 会渲染成黑色实心块"
                 )
-            else:
-                stats["colored_ok"] += 1
 
-            # presentation attribute 会被同名 CSS 类属性压掉
+            # presentation attribute 会被同名 CSS 类属性压掉（行内 style 不算）
             for prop in ("stroke", "fill"):
-                if prop in a and cls & (FILL_CLASSES | STROKE_ONLY_CLASSES):
+                if prop in a and prop in declared:
                     problems.append(
                         f"SVG #{i} 的 <{local(el.tag)} class=\"{' '.join(cls)}\"> "
                         f"用了 `{prop}=\"{a[prop]}\"` 属性 —— "
@@ -117,7 +210,41 @@ def check(path):
                         f"改用 style=\"{prop}:{a[prop]}\""
                     )
 
-    # ---------- 箭头 marker 是否有显式填充 ----------
+    # ---------- ④ 走线是否横穿方框 ----------
+    MIN_W, MIN_H = 50.0, 30.0        # 只把够大的 rect 当"方框"，图例小方块不参与
+    for i, sv in enumerate(svgs, 1):
+        try:
+            root = ET.fromstring(sv)
+        except ET.ParseError:
+            continue
+
+        boxes = []
+        for el in root.iter():
+            if local(el.tag) != "rect":
+                continue
+            try:
+                x, y = float(el.get("x", 0)), float(el.get("y", 0))
+                w, h = float(el.get("width")), float(el.get("height"))
+            except (TypeError, ValueError):
+                continue
+            if w >= MIN_W and h >= MIN_H:
+                boxes.append((x, y, w, h, el.get("class", "—")))
+
+        for el in root.iter():
+            if local(el.tag) not in ("line", "path"):
+                continue
+            for s in _segments(el):
+                for bx, by, bw, bh, bcls in boxes:
+                    if _crosses(s, (bx, by, bw, bh)):
+                        problems.append(
+                            f"SVG #{i} 的 <{local(el.tag)} class=\"{el.get('class','—')}\"> "
+                            f"线段 ({s[0]:g},{s[1]:g})→({s[2]:g},{s[3]:g}) "
+                            f"横穿方框 [{bcls}] ({bx:g},{by:g} {bw:g}×{bh:g}) —— "
+                            f"连线必须绕开方框"
+                        )
+                        break
+
+    # ---------- 箭头 marker 引用是否存在 ----------
     ids = set(re.findall(r'\bid="([^"]+)"', text))
     refs = set(re.findall(r'marker-end="url\(#([^)]+)\)"', text))
     for r in refs - ids:
@@ -150,7 +277,11 @@ def main(argv):
         problems, stats = check(path)
         print(f"\n=== {path}")
         if stats:
-            print(f"    内嵌 SVG {stats['svg']} 张，绘制形状 {stats['shapes']} 个")
+            print(f"    内嵌 SVG {stats['svg']} 张，绘制形状 {stats['shapes']} 个，"
+                  f"样式表里解析到 {stats['classes']} 个类")
+            if stats["classes"] == 0 and stats["shapes"]:
+                print("    ⚠ 一个类都没解析到 —— 若文件确实用了 class，"
+                      "说明 <style> 的解析方式要跟着改")
         if problems:
             total += len(problems)
             for p in problems:
@@ -160,7 +291,7 @@ def main(argv):
 
     print(f"\n{'=' * 52}")
     if total:
-        print(f"共 {total} 个问题，详见 ERRORS.md ERR-0004")
+        print(f"共 {total} 个问题，详见 ERRORS.md ERR-0004 / ERR-0005")
         return 1
     print("全部通过")
     return 0
