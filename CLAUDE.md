@@ -110,6 +110,25 @@
 - **板载时钟档位丝印**：`0:NO CLOCK / 1:1Hz / 2:2Hz / 3:10Hz / 4:100Hz / 5:1KHz / 6:1MHz / 7:50MHz`
   - 开发板上需确认指示灯为档位 **7**
 
+#### ⚠️ 引脚号 vs 位序 —— 别把两者搞混
+
+**引脚号是板上丝印的物理网络名，不随你的信号命名改变。** 本项目一律以手册为准：
+
+| 板上网络名 | 引脚号（手册原文） |
+|---|---|
+| COLR0…COLR7 | **22、21、16、15、14、13、12、11** |
+| COLG0…COLG7 | **45、44、43、42、41、40、39、38** |
+
+也就是说 **`dot_colr(0)` 必须接 PIN_22，`dot_colr(7)` 接 PIN_11**。
+
+曾经踩过的坑：桌面上另一个旧工程 `VHDL/dot_matrix_pwm` 里写的是
+`col_r[0] → PIN_11 … col_r[7] → PIN_22`，**与板手册相反**。那个工程能用，
+是因为它的扫描代码是按它自己的命名写的——**位序是自洽的，但和手册的标签反了**。
+抄它的引脚表会得到"左右镜像"的点阵。
+
+> **规则：引脚号只从手册拿；旧工程只能用来交叉验证"用到了哪些引脚"，不能用来确定位序。**
+> 本项目 `quartus/puzzle.qsf` 已按手册写死，并已与手册逐条核对。
+
 ### 4.3 键盘功能映射（已定稿）
 
 物理位置（ROW3 上 → ROW0 下）：
@@ -198,19 +217,59 @@ quartus_sim quartus/puzzle -c puzzle
 quartus_pgm -c USB-Blaster -m jtag -o "p;quartus/output_files/puzzle.pof"
 ```
 
-### 5.3 仿真说明（重要）
+### 5.3 仿真方案（已实测跑通，2026-09-17）
 
-**本机没有 ModelSim / GHDL**，只能用 **Quartus II 内置仿真器**：
+**本机没有 ModelSim / GHDL**，只能用 **Quartus II 内置仿真器**。它的三条硬限制
+（都已实测确认，不是推测）：
 
-- 它仿真的是**综合后网表**，不是 RTL → **不支持 VHDL testbench、不支持 `assert`**
-- 激励来自 **`.vwf` 向量波形文件**，而 `.vwf` 是**纯文本**格式 → 可以用脚本生成
-- 仿真输出的 `.vwf` 同样是纯文本 → 可以用 Python 解析、自动判定、并渲染成波形图
+1. 仿真的是**综合后网表**，不是 RTL → **不支持 VHDL testbench、不支持 `assert`**
+2. **没有任何 Tcl 命令接口** —— `package require ::quartus::simulator` 能加载，
+   但 `info commands ::quartus::simulator::*` 是空的，`quartus_sh` 里也同样为空。
+   即**无法用 Tcl 脚本驱动仿真**。
+3. **必须有一个 `.vwf` 向量源文件**，否则直接报
+   `No valid vector source file specified`。
 
-**因此标准仿真流程是：**
-1. 脚本生成 `sim/<模块>.vwf` 激励
-2. `quartus_sh` / `quartus_sim` 命令行跑仿真
-3. `scripts/vwf_render.py` 解析输出 → 渲染波形图到 `docs/图/`
-4. 判读结论写入 `docs/03-仿真验证方案.md`
+**突破口（关键结论）：**
+
+- `.vwf` 是**纯文本**格式，格式已从开发板上验证过的真实 `.vwf` 逆向整理完毕
+  → 已封装成库 **`scripts/vwf.py`**（读写 / 展开嵌套 REPEAT / 参考模型比对）
+- `quartus_sim <工程> --mode=functional --overwrite_waveform=on`
+  会把**仿真结果写回输入 `.vwf` 本身**（覆盖激励）→ 结果同样是纯文本，可解析
+- 于是可以做**全自动、自校验**的验证：**用 Python 当测试平台**
+
+**标准仿真流程（每个模块都照这个走）：**
+
+```bash
+# 1. 生成功能仿真网表（改顶层后必须重跑）
+quartus_map <工程> --generate_functional_sim_netlist
+
+# 2. Python 生成激励 .vwf
+python scripts/gen_stim.py <模块>
+
+# 3. 跑仿真（结果写回同一个 .vwf）
+quartus_sim <工程> --mode=functional --overwrite_waveform=on
+
+# 4. Python 解析结果 + 参考模型逐点比对 + 渲染波形图
+python scripts/check_sim.py <模块>
+```
+
+第 2/4 步的模块专属激励与断言写在 `sim/tb_<模块>.py` 里。
+
+> ⚠️ **`.vwf` 会被仿真结果覆盖**，所以激励必须**可重新生成**。
+> 永远不要手工编辑 `sim/*.vwf` —— 改 `sim/tb_*.py` 然后重新生成。
+
+**其它已实测的坑：**
+- `.vwf` 里的 `DISPLAY_LINE` 块如果 `TREE_INDEX` 不连续 / `CHILDREN` 不自洽，
+  仿真器会警告 `corrupted display information`（不影响结果，但会让报告难看）
+  → `vwf.py` 已保证自洽
+- 仿真结果在 `.sim.rpt` 里**看不到波形**（"Waveform report data cannot be output to
+  ASCII"），只能从回写的 `.vwf` 里读 → 别再去找 VCD 输出，`--simulation_results_format=VCD`
+  **实测不产生任何文件**
+- **实体名不得与 Quartus 原语重名**。实测：实体取名 `exp`（LPM 指数原语）会直接
+  报 `Entity "exp" will be ignored because it conflicts with Quartus II primitive name`
+  → `Top-level design entity "exp" is undefined`。
+  高危名字：`exp` `abs` `add` `sub` `mult` `div` `lpm_*` `alt*`。
+  **本项目的模块名（`clk_gen` / `seg_scan` / `puzzle_*` …）都不冲突。**
 
 ### 5.4 环境备忘
 

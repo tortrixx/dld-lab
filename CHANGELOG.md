@@ -35,6 +35,35 @@
 
 ---
 
+### 2026-09-17 · 第 2 次会话 · 打通自动仿真链路
+
+**Added**
+- 新增 `scripts/vwf.py`：Quartus `.vwf` 向量波形文件读写库（解析 / 生成 / 展开嵌套
+  `NODE`·`REPEAT`·`LEVEL` / 参考模型比对）。自带自检 `python scripts/vwf.py`
+- 新增 `scripts/verify_tiling.py` 入库（穷举验证拼图分解的合法性）
+
+**Changed**
+- **仿真方案落地**：确定并实测跑通全自动仿真链路 ——
+  `quartus_map --generate_functional_sim_netlist` →
+  Python 生成激励 `.vwf` → `quartus_sim --mode=functional --overwrite_waveform=on`
+  → Python 解析回写结果并逐点比对参考模型
+- 仿真方案由"计划中的 TCL 脚本"改为 **Python**：实测确认 Quartus II 9.1 的
+  `::quartus::simulator` 是空包（无任何 Tcl 命令），`quartus_sim -t` 无法驱动仿真
+
+**Fixed**
+- 见 `ERRORS.md` 三条记录（均为工具链/引脚问题，非 RTL 缺陷）：
+  - ERR-0001 实体名 `exp` 与 Quartus 原语冲突 → 综合失败
+  - ERR-0002 内置仿真器无 Tcl 接口且强制要求 `.vwf` → 仿真一度无法自动化
+  - ERR-0003 引脚位序与板上网络名混淆 → 差点抄到镜像的点阵列序
+
+**Docs**
+- `CLAUDE.md` §5.3 重写为**已实测的**仿真流程（含命令行、`.vwf` 会被覆盖的警告、三个坑）
+- `CLAUDE.md` §4.2 新增"引脚号 vs 位序"小节：手册权威引脚表 + 旧工程踩坑说明
+- 交叉验证引脚表：与开发板手册、与桌面上 9 个已跑通的旧 Quartus 工程三方核对，
+  六组引脚中五组完全一致，唯一差异（红列位序）已定位为旧工程自身命名习惯
+
+---
+
 <!--
 ## [x.y.z] - YYYY-MM-DD
 ### Added
