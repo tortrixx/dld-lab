@@ -316,7 +316,7 @@ def main(argv):
             for p in problems:
                 print(f"    ✗ {p}")
         else:
-            print("    ✓ XML 合法 · 填充完整 · 无属性覆盖 · id 无冲突")
+            print("    ✓ XML 合法 · 填充完整 · 无属性覆盖 · id 无冲突 · 走线无横穿方框")
 
     print(f"\n{'=' * 52}")
     if total:
