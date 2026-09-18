@@ -217,6 +217,30 @@ L2B_PIECES = [
     from_shape(["XX"]),
 ]
 
+# ---------- 胜利 / 失败图案（2026-09-18 定稿，docs/02 §7.4）----------
+
+WIN_PATTERN = from_rows([
+    "........",
+    "......XX",
+    ".....XX.",
+    "X...XX..",
+    "XX.XX...",
+    ".XXX....",
+    "..X.....",
+    "........",
+])
+
+FAIL_PATTERN = from_rows([
+    "........",
+    "XX....XX",
+    ".XX..XX.",
+    "..XXXX..",
+    "..XXXX..",
+    ".XX..XX.",
+    "XX....XX",
+    "........",
+])
+
 
 # ============================================================
 # 验证
@@ -286,6 +310,28 @@ def check(name, target, pieces, names, vhdl_name):
     return ok
 
 
+def check_pattern(name, cells, expect_count, vhdl_name):
+    """胜负图案：只查格数与位图（不参与铺法，无格数守恒约束）。"""
+    print("=" * 62)
+    print("【%s】" % name)
+    print("=" * 62)
+    m = cells_to_mask(cells)
+    print("图案 (%d 格):" % len(cells))
+    for line in render(m, "██", "··"):
+        print("   ", line)
+    ok = True
+    if len(cells) != expect_count:
+        print("✗ 格数不符: %d ≠ %d" % (len(cells), expect_count))
+        ok = False
+    else:
+        print("✓ 格数正确: %d" % len(cells))
+    print("\n掩码常量 (VHDL, 高位=行7 … 低位=行0):")
+    print('    constant %s : std_logic_vector(63 downto 0) :=' % vhdl_name)
+    print('        "%s";' % mask_to_vhdl(m))
+    print()
+    return ok
+
+
 def main():
     results = []
     results.append(check("第一关 · 实心4x3矩形", L1_TARGET, L1_PIECES, L1_NAMES,
@@ -294,6 +340,8 @@ def main():
                          "L2_TARGET_MASK"))
     results.append(check("第二关备选 · 向下箭头", L2B_TARGET, L2B_PIECES, L2_NAMES,
                          "L2B_TARGET_MASK"))
+    results.append(check_pattern("胜利图案 · 对勾", WIN_PATTERN, 15, "WIN_MASK"))
+    results.append(check_pattern("失败图案 · 叉", FAIL_PATTERN, 24, "FAIL_MASK"))
 
     print("=" * 62)
     if all(results):

@@ -184,12 +184,24 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <!-- ·········· 时钟与节拍（画成椭圆，与方框模块区分：它只有扇出、没有数据流） ··········
              50MHz 的来源直接写在椭圆里、不再单独画一条输入线 ——
              它是这一子系统的属性（分频基准），不是第二路控制输入。
-             真正需要从图外进来的只有 SW7（它参与复位：rst = (not SW7) or por_rst）。
+             从图外进来的是两个复位相关输入：
+               · sw7  参与复位（rst = btn_rst or (not SW7) or por_rst），且在要求 1 里要即时熄灭显示
+               · btn  按键复位（课件 PDF p45（一）"复位必须用按键来实现"）—— 2026-09-18 补入
              ⚠️ clk 的"顶层直连 8 个时序实体"画在 DWG-02 那一层（那里才有实体），本层不画。 -->
+        <!-- 副标题**必须换行写**，不能挤成一行：
+             椭圆 rx=95，在 y=289 处半宽只剩 95×√(1−(24/50)²)≈83；
+             而「50MHz · 5 档单周期节拍 · 复位产生」一行约 190 单位宽，
+             并排比椭圆本身还宽 → 左右同时溢出（ERR-0019）。
+             拆成 y=282 / y=300 两行后各 ≈139 / 50 单位，均落在可用宽度内。 -->
         <ellipse cx="875" cy="265" rx="95" ry="50" class="dg-time"/>
-        <text x="875" y="247" class="dg-name" text-anchor="middle">时钟与节拍</text>
-        <text x="875" y="268" class="dg-ent" text-anchor="middle">clk_gen</text>
-        <text x="875" y="289" class="dg-sub" text-anchor="middle">50MHz · 5 档单周期节拍</text>
+        <text x="875" y="244" class="dg-name" text-anchor="middle">时钟与节拍</text>
+        <text x="875" y="263" class="dg-ent" text-anchor="middle">clk_gen</text>
+        <text x="875" y="282" class="dg-sub" text-anchor="middle">50MHz · 5 档单周期节拍</text>
+        <text x="875" y="300" class="dg-sub" text-anchor="middle">复位产生</text>
+
+        <!-- btn 复位键：从图外进 clk_gen。y=235 处椭圆左边界 x≈799（(30/50)²=0.36 → 半弦 0.8×95=76） -->
+        <line x1="60" y1="235" x2="792" y2="235" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="132" y="227" class="dg-io" text-anchor="end">btn 复位键</text>
 
         <line x1="60" y1="265" x2="773" y2="265" class="dg-wire" marker-end="url(#b1)"/>
         <!-- 右对齐到 x=132：容器左边界在 x=150，左对齐会让「关」字贴到虚线上。
@@ -232,7 +244,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <text x="1415" y="458" class="dg-name" text-anchor="middle">显示子系统</text>
         <text x="1415" y="481" class="dg-ent" text-anchor="middle">disp_format · seg_scan</text>
         <text x="1415" y="499" class="dg-ent" text-anchor="middle">dot_matrix_scan</text>
-        <text x="1415" y="521" class="dg-sub" text-anchor="middle">tick_1k · 消隐防鬼影</text>
+        <text x="1415" y="521" class="dg-sub" text-anchor="middle">tick_8k · 消隐防鬼影</text>
 
         <rect x="930" y="730" width="250" height="135" rx="3" class="dg-data"/>
         <text x="1055" y="772" class="dg-name" text-anchor="middle">图案与随机数据</text>
@@ -265,7 +277,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
 
         <!-- 控制 → 拼图核心：开局脉冲 + 三种操作键脉冲。
              ⚠️ 这里**没有 level** —— puzzle_ctrl 不关心第几关（docs/01 §5.8），
-             零片形状由 piece_rom 按 level 预先选好。 -->
+             零片形状由 piece_rom 按 pattern_sel 预先选好（2026-09-18 修正）。 -->
         <line x1="765" y1="487" x2="935" y2="487" class="dg-wire" marker-end="url(#b1)"/>
         <text x="850" y="441" class="dg-lbl" text-anchor="middle">操作键转发</text>
         <text x="850" y="458" class="dg-lbl" text-anchor="middle">round_start</text>
@@ -277,7 +289,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
 
         <!-- 控制 → 图案与随机数据：选图案 + 装随机种子 -->
         <path d="M760,545 V620 H980 V730" class="dg-wire" marker-end="url(#b1)"/>
-        <text x="774" y="612" class="dg-lbl">pattern_sel · level · seed</text>
+        <text x="774" y="612" class="dg-lbl">pattern_sel · seed · seed_load</text>
 
         <!-- 核心 ↔ 图案与随机数据：来回各画一条，不画双向箭头。
              下行 rnd_step 是关键：rng_lfsr 每收到一次请求才步进一次，
@@ -383,9 +395,14 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <text x="52" y="775" class="dg-io" text-anchor="middle">kp_col</text>
 
         <!-- ·········· C1：时钟与输入 ·········· -->
+        <!-- btn 从**上方**进 clk_gen：左侧已被 clk 占用，右侧是 rst 的出线方向。
+             它是 clk_gen 的第二个复位入口（课件 PDF p45（一），2026-09-18 补入）。 -->
+        <line x1="105" y1="45" x2="105" y2="95" class="dg-wire" marker-end="url(#a1)"/>
+        <text x="105" y="37" class="dg-io" text-anchor="middle">btn</text>
+
         <rect x="80" y="95" width="160" height="76" rx="3" class="dg-time"/>
         <text x="160" y="127" class="dg-t" text-anchor="middle">clk_gen</text>
-        <text x="160" y="146" class="dg-sub" text-anchor="middle">clk 分频 · 上电复位</text>
+        <text x="160" y="146" class="dg-sub" text-anchor="middle">clk 分频 · 复位产生</text>
 
         <rect x="80" y="700" width="160" height="76" rx="3" class="dg-driver"/>
         <text x="160" y="732" class="dg-t" text-anchor="middle">keypad_scan</text>
@@ -424,11 +441,11 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <!-- ·········· C5：输出驱动 ·········· -->
         <rect x="1070" y="95" width="160" height="76" rx="3" class="dg-driver"/>
         <text x="1150" y="127" class="dg-t" text-anchor="middle">seg_scan</text>
-        <text x="1150" y="146" class="dg-sub" text-anchor="middle">clk · tick_1k · 消隐扫描</text>
+        <text x="1150" y="146" class="dg-sub" text-anchor="middle">clk · tick_8k · 消隐扫描</text>
 
         <rect x="1070" y="386" width="160" height="88" rx="3" class="dg-driver"/>
         <text x="1150" y="420" class="dg-t" text-anchor="middle">dot_matrix_scan</text>
-        <text x="1150" y="440" class="dg-sub" text-anchor="middle">clk · tick_1k · 行扫描</text>
+        <text x="1150" y="440" class="dg-sub" text-anchor="middle">clk · tick_8k · 行扫描</text>
         <text x="1150" y="456" class="dg-sub" text-anchor="middle">消隐防鬼影</text>
 
         <rect x="1070" y="675" width="160" height="76" rx="3" class="dg-driver"/>
@@ -476,14 +493,14 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <line x1="720" y1="133" x2="1070" y2="133" class="dg-wire" marker-end="url(#a1)"/>
         <text x="895" y="124" class="dg-lbl" text-anchor="middle">disp_val · blank</text>
 
-        <!-- 6 game_fsm → pattern_rom，以及同一根出线的分支 → piece_rom（level）。
+        <!-- 6 game_fsm → pattern_rom，以及同一根出线的分支 → piece_rom（pattern_sel，2026-09-18 由 level 改）。
              两条都用 x=400 这条竖线：185~323 段完全重合、渲染成一根线，
              在 y=323 分出一支进 pattern_rom、在 y=463 再分一支进 piece_rom。
              这不是"两根线画在一起"，是**一个源、两个目的地**的树状走线。 -->
         <path d="M400,185 V323 H560" class="dg-wire" marker-end="url(#a1)"/>
         <text x="408" y="303" class="dg-lbl">pattern_sel</text>
         <path d="M400,185 V463 H560" class="dg-wire" marker-end="url(#a1)"/>
-        <text x="408" y="455" class="dg-lbl">level</text>
+        <text x="408" y="455" class="dg-lbl">pattern_sel</text>
         <!-- 6c 同一个源、第三支 → rng_lfsr：随机种子 ＋ 装入脉冲（连线表第 3 条）。
              ⚠️ seed_load 是"按开始键才装一次"的脉冲，漏画它 rng 永远停在初值。 -->
         <path d="M380,185 V620 H560" class="dg-wire" marker-end="url(#a1)"/>
@@ -683,7 +700,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <text x="880" y="552" class="st-lbl-hi" text-anchor="middle">→ 直接回 S_PREVIEW（不经 S_IDLE）· 关卡←1 · 采样新种子</text>
 
         <!-- 初始标注 -->
-        <text x="145" y="352" class="st-enc" text-anchor="middle">上电 或 SW7=0</text>
+        <text x="145" y="352" class="st-enc" text-anchor="middle">复位键 或 上电 或 SW7=0</text>
       </svg>
     </div>
 
@@ -693,7 +710,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
       <span>红 = 失败路径</span>
       <span>灰 = 无条件 / 按键迁移</span>
       <span>「重开」这条边对<b>全部 6 个状态</b>都成立，图上只连出 S_WIN / S_FAIL 两支</span>
-      <span>复位是<b>异步于状态</b>的：<code>rst = (not SW7) or por_rst</code>，6 个状态一律回 S_SELF_TEST</span>
+      <span>复位<b>同步、高有效</b>，与状态无关：<code>rst = btn_rst or por_rst or (not SW7)</code>，6 个状态一律回 S_SELF_TEST</span>
     </div>
   </section>
 

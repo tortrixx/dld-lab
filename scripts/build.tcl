@@ -12,7 +12,12 @@
 #   2. 模块级验证时经常要临时把顶层换成一个子模块，本脚本支持 --top 一次搞定，
 #      不用去改 .qsf（避免忘记改回来）
 #
-# 注意：--top 只是**本次编译临时生效**，不会写回 .qsf
+# 注意：--top 通过"先存原值、关工程前还原"实现临时生效（见下方实现）。
+#       set_global_assignment 本身会写回 .qsf，切勿删掉还原段。
+#
+# ⚠️ 阶段 4 把工程从 board_test_top 迁到 puzzle_top 时，--top 救不了场：
+#    .qsf 里没有 puzzle_top.vhd 等 8 个源文件，且有 16 行 ld 引脚约束悬挂。
+#    迁移步骤见 docs/02-模块详细设计.md §14.1 末尾「阶段 4 工程迁移三步」。
 # ============================================================
 
 package require ::quartus::project
@@ -49,8 +54,11 @@ if {![file exists [file join $PROJ_DIR "$PROJ_NAME.qpf"]]} {
 cd $PROJ_DIR
 project_open $PROJ_NAME
 
+# ⭐ 2026-09-18 审查修正：set_global_assignment 在 project_close 时会写回 .qsf，
+#    原先"--top 不会写回 .qsf"的注释是错的 —— 必须先存原值、关工程前还原。
+set top_saved [get_global_assignment -name TOP_LEVEL_ENTITY]
 if {$top_override ne ""} {
-    puts "==> 本次编译临时把顶层实体设为：$top_override"
+    puts "==> 本次编译临时把顶层实体设为：$top_override（原顶层：$top_saved，关工程前还原）"
     set_global_assignment -name TOP_LEVEL_ENTITY $top_override
 }
 
@@ -68,6 +76,12 @@ if {$map_only} {
         puts "编译失败：$err"
         set rc 1
     }
+}
+
+# ---------- 还原顶层实体，避免 --top 污染 .qsf ----------
+if {$top_override ne ""} {
+    set_global_assignment -name TOP_LEVEL_ENTITY $top_saved
+    puts "==> 已把顶层实体还原为：$top_saved"
 }
 
 project_close

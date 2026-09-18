@@ -24,6 +24,13 @@ set_global_assignment -name VHDL_INPUT_VERSION VHDL_1993
 # 未使用引脚统一设为输入三态（安全默认，避免意外驱动外部器件）
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
 
+# 综合优化目标 = 面积优先
+# 【依据】课程课件《数字系统设计2026》p46（三）器件资源的优化 + p50 例4：
+#   Quartus II 的 Analysis & Synthesis Settings 里，Optimization Technique 要选 Area。
+# 【本项目的理由】EPM1270 只有 1270 个 LE，而本设计对速度没有任何要求 ——
+#   典型的"用面积换速度"要反过来做。Quartus 默认是 Balanced，必须显式改成 AREA。
+set_global_assignment -name OPTIMIZATION_TECHNIQUE AREA
+
 # ------------------------------------------------------------
 # 源文件（路径相对于本工程目录 quartus/）
 # ------------------------------------------------------------
@@ -111,6 +118,10 @@ set_location_assignment PIN_114 -to kp_row[3]
 
 # ---- 蜂鸣器 ----
 set_location_assignment PIN_60 -to buzz
+
+# ---- 硬件复位键 BTN0 (按下=1) ----
+# 课程 PDF p45：复位必须用按键实现（初值只具有仿真意义）
+set_location_assignment PIN_61 -to btn
 
 # ---- 16 个 LED (LD0~LD15, 高电平点亮) ----
 set_location_assignment PIN_80  -to ld[0]
