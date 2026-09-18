@@ -31,11 +31,14 @@ port map 里漏写一根线不会报错，综合器按默认值处理 —— 若
 import io
 import re
 import sys
+import pathlib
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-DOC = "docs/01-系统设计.md"
+# 仓库根目录：由脚本自身位置推导，这样从任何目录跑都对
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+DOC = str(ROOT / "docs" / "01-系统设计.md")
 
 # ---------------------------------------------------------------
 # 归一化与豁免规则（改接口时同步维护本段 —— 这是全脚本唯一需要手工维护的部分）
@@ -95,18 +98,35 @@ def parse_ports(path):
     body = text[m5.start():m6.start()]
 
     modules = {}
+    toplevels = {}                        # {顶层名: [端口名...]}，来自 §5.12 / §5.13
     current = None
+    current_top = None
     for line in body.splitlines():
-        h = re.match(r"^### 5\.\d+\s+`([a-z0-9_]+)`", line)
-        if h:
-            name = h.group(1)
-            if name == "puzzle_pkg":
-                current = None            # 包不是实体，跳过
-            else:
-                current = name
+        # ★ 2026-09-18 修正：原先只认 "### 5.N `实体名`" 这一种写法。
+        #   于是新增的 §5.12「顶层 `puzzle_top`」/ §5.13 匹配不上，
+        #   current 停在 §5.11 的 buzzer_ctrl —— 下面所有行被当成 buzzer_ctrl 的端口，
+        #   脚本照旧"通过"，但结论是错的（静默误解析比不检查更糟）。
+        #   现在：任何 "### 5.N" 标题一律重置分节；带反引号且非包名的才算实体。
+        h_any = re.match(r"^### 5\.\d+\s+(.*)$", line)
+        if h_any:
+            rest = h_any.group(1)
+            h_ent = re.match(r"`([a-z0-9_]+)`", rest)
+            h_top = re.match(r"^顶层\s+`([a-z0-9_]+)`", rest)
+            if h_top:
+                current = None                       # 顶层表单独收，不算实体
+                current_top = h_top.group(1)
+                toplevels.setdefault(current_top, [])
+            elif h_ent and h_ent.group(1) != "puzzle_pkg":
+                current = h_ent.group(1)             # 实体：§5.1 ~ §5.11
                 modules[current] = {"in": [], "out": []}
+                current_top = None
+            else:
+                current = None                       # 包 / 其它节：跳过
+                current_top = None
             continue
-        if current is None or not line.startswith("|"):
+        if not line.startswith("|"):
+            continue
+        if current is None and current_top is None:
             continue
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
         if len(cells) < 3:
@@ -114,9 +134,13 @@ def parse_ports(path):
         port_cell, direction = cells[0], cells[1]
         if direction not in ("in", "out"):
             continue                      # 表头 / 分隔行 / "—" 分节行
+        if current_top is not None:
+            for port in re.findall(r"`([a-z0-9_]+)`", port_cell):
+                toplevels[current_top].append(port)
+            continue
         for port in re.findall(r"`([a-z0-9_]+)`", port_cell):
             modules[current][direction].append(port)
-    return modules
+    return modules, toplevels
 
 
 def check(modules):
@@ -231,12 +255,71 @@ def selftest(modules):
     return ok
 
 
+def check_toplevel_ports(toplevels):
+    """★ 2026-09-18 新增（ERR-0020 / 报告 hw-01 的护栏）。
+
+    断言 docs/01 §5.12 / §5.13 的**顶层器件端口名**与 quartus/puzzle.qsf 的 `-to` **逐名吻合**。
+
+    【为什么必须有这条】
+    顶层端口名有三个可能的来源（文档 §5.12、.qsf、子模块端口名），
+    三者不一致时**综合器不报错** —— `port map` 里名字对不上就是静默悬空。
+    本项目的文档一度把子模块的 `o_seg` 当成顶层端口名写进"逐字可抄"的骨架，
+    而 .qsf 用的是 `seg`；照抄的后果是 41 条引脚约束全部命中不到节点、
+    点阵与数码管被装配器随意摆放 —— **只有上板才暴露**。
+    """
+    qsf = ROOT / "quartus" / "puzzle.qsf"
+    if not qsf.exists():
+        return None, "未找到 .qsf"
+    text = qsf.read_text(encoding="utf-8", errors="replace")
+    qsf_names = set()
+    for m in re.finditer(r"^\s*set_location_assignment\s+PIN_\d+\s+-to\s+(\S+)\s*$",
+                         text, re.MULTILINE):
+        qsf_names.add(re.sub(r"\[.*$", "", m.group(1)))
+
+    problems = []
+    if not toplevels:
+        problems.append("docs/01 §5.12/§5.13（顶层端口表）未找到或为空 —— 无法核对")
+
+    doc_names = set()
+    for top, ports in toplevels.items():
+        doc_names |= set(ports)
+
+    for name in sorted(qsf_names - doc_names):
+        problems.append(f".qsf 约束了 `{name}`，但 §5.12/§5.13 里没有这个顶层端口")
+    for name in sorted(doc_names - qsf_names):
+        problems.append(f"§5.12/§5.13 声明了顶层端口 `{name}`，但 .qsf 里没有对应约束")
+
+    # puzzle_top 不得有 ld（那是 board_test_top 独有的）
+    if "puzzle_top" in toplevels and "ld" in toplevels["puzzle_top"]:
+        problems.append("`puzzle_top` 不应有 `ld` 端口（16 个 LED 只属 board_test_top）")
+
+    return (qsf_names, doc_names, sorted(toplevels.keys())), problems
+
+
 def main():
-    modules = parse_ports(DOC)
+    modules, toplevels = parse_ports(DOC)
     if "--selftest" in sys.argv:
         return 0 if selftest(modules) else 1
     missing_in, orphan_out, input_rows = check(modules)
-    return 0 if report(modules, missing_in, orphan_out, input_rows) else 1
+    ok = report(modules, missing_in, orphan_out, input_rows)
+
+    info, problems = check_toplevel_ports(toplevels)
+    print()
+    print("=" * 64)
+    print("顶层端口名 ↔ .qsf 的 `-to` 对账（ERR-0020 / 报告 hw-01 的护栏）")
+    print("=" * 64)
+    if info:
+        qsf_names, doc_names, tops = info
+        print(f"  顶层表：{'、'.join(tops)}")
+        print(f"  .qsf 的 -to 名 {len(qsf_names)} 个 / 文档顶层端口 {len(doc_names)} 个")
+    if problems:
+        for p in problems:
+            print("  ✗ " + p)
+        ok = False
+    else:
+        print("  ✓ 逐名吻合")
+    print("=" * 64)
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

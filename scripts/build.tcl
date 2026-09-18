@@ -107,4 +107,56 @@ if {[file exists $summary]} {
 }
 puts "============================================================"
 
+# ---------- 打印时序摘要（Fmax）----------
+# ⭐ 2026-09-18 审查新增（ERR-0020 / 报告 CRIT-1）。
+#    "目标 50MHz"是硬约束，但此前**没有任何手段验证它**。
+#    约束本身在 quartus/puzzle.sdc 里（create_clock -period 20ns），
+#    本段负责把结果**打印出来**，便于回填 docs/04 §5.2 的 Fmax 一行。
+#
+#    判据：**Fmax ≥ 50MHz** 才算达标。不达标时的第一嫌疑见 puzzle.sdc 末尾的注释。
+set timing_candidates [list \
+    [file join $PROJ_DIR "output_files" "$PROJ_NAME.tan.rpt"] \
+    [file join $PROJ_DIR "$PROJ_NAME.tan.rpt"] \
+    [file join $PROJ_DIR "output_files" "$PROJ_NAME.sta.rpt"] \
+    [file join $PROJ_DIR "$PROJ_NAME.sta.rpt"] \
+]
+
+puts ""
+puts "============================================================"
+puts " 时序摘要（Fmax）—— 回填 docs/04-引脚分配表.md §5.2"
+puts "============================================================"
+set found 0
+foreach tf $timing_candidates {
+    if {[file exists $tf]} {
+        set found 1
+        puts "来源：[file tail $tf]"
+        set fh [open $tf r]
+        set n 0
+        while {[gets $fh line] >= 0} {
+            # 只挑与 Fmax / 时钟周期 / 时钟建立有关的关键行，避免刷屏
+            if {[string match "*Fmax*" $line] ||
+                [string match "*Maximum frequency*" $line] ||
+                [string match "*clock setup*" $line] ||
+                [string match "*Slack*" $line]} {
+                puts "  $line"
+                incr n
+            }
+            if {$n > 40} {
+                puts "  ...（更多内容见 [file tail $tf]）"
+                break
+            }
+        }
+        close $fh
+        break
+    }
+}
+if {!$found} {
+    puts " 未找到时序报告（可能只跑了综合，或编译失败）"
+    puts " 若确实做了全流程编译却仍找不到，请手工查看 quartus/ 下的 *.tan.rpt"
+}
+puts "============================================================"
+puts " ⚠️ 判据：Fmax ≥ 50MHz。不达标时先查最长组合路径"
+puts "    （r_anchor → place() → disp_format → dot_matrix_scan → 引脚，无中间寄存器）"
+puts "============================================================"
+
 exit $rc

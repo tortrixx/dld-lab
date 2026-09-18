@@ -31,6 +31,13 @@ set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
 #   典型的"用面积换速度"要反过来做。Quartus 默认是 Balanced，必须显式改成 AREA。
 set_global_assignment -name OPTIMIZATION_TECHNIQUE AREA
 
+# 时序约束文件（50MHz 时钟定义 → 编译后可读出 Fmax）
+# 【依据】"目标时钟 50MHz"是硬约束，但此前全项目**没有任何时序验证手段**：
+#   无时钟约束、无 TAN 步骤、docs/04 的 Fmax 行无数据来源 ——
+#   而 docs/03 §1.3 却已断言"时序裕量极大"（无依据）。
+#   2026-09-18 审查查出（ERRORS.md ERR-0020 / 报告 CRIT-1）。
+set_global_assignment -name SDC_FILE puzzle.sdc
+
 # ------------------------------------------------------------
 # 源文件（路径相对于本工程目录 quartus/）
 # ------------------------------------------------------------
