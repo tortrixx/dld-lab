@@ -213,10 +213,15 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <line x1="245" y1="360" x2="1585" y2="360" class="dg-rail"/>
         <text x="250" y="352" class="dg-lbl">节拍总线（不含 clk）· tick_8k · tick_1k · tick_100 · tick_2hz · tick_1hz</text>
 
-        <!-- 节拍扇出：橙线＝时钟/节拍，与黑色数据线区分开 -->
+        <!-- 节拍扇出：橙线＝时钟/节拍，与黑色数据线区分开。
+             共 4 条：键盘输入(265) · 游戏控制(610) · 显示子系统(1380) · 音效输出(下方路径)。
+             ⚠️ **2026-09-18 审查删掉了原先第 3 条 x=1120 的引线** ——
+             它落在「拼图核心」框内（935..1150），而 **puzzle_ctrl 根本没有 tick 端口**
+             （docs/01 §5.8 只有 clk/rst），连线表第 0 条也明写
+             "**S4 拼图核心与 S5 图案与随机数据不接任何节拍**"。
+             那是一条**图上多画、表里没有**的线（ERR-0020 / 报告 arch-01）。 -->
         <line x1="265" y1="360" x2="265" y2="430" class="dg-tap" marker-end="url(#b3)"/>
         <line x1="610" y1="360" x2="610" y2="430" class="dg-tap" marker-end="url(#b3)"/>
-        <line x1="1120" y1="360" x2="1120" y2="430" class="dg-tap" marker-end="url(#b3)"/>
         <line x1="1380" y1="360" x2="1380" y2="430" class="dg-tap" marker-end="url(#b3)"/>
         <!-- 注意：这里**没有**引一条节拍到「图案与随机数据」。
              pattern_rom / piece_rom 是纯组合，rng_lfsr 由 puzzle_ctrl 的 rnd_step
@@ -299,6 +304,19 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <line x1="1080" y1="730" x2="1080" y2="545" class="dg-wire" marker-end="url(#b1)"/>
         <text x="1092" y="600" class="dg-lbl">target_mask · rel_mask</text>
         <text x="1092" y="617" class="dg-lbl">· rnd</text>
+
+        <!-- 图案与随机数据 → 显示子系统（pattern_mask）—— ★ 2026-09-18 审查补画。
+             连线表第 12 条，此前**图上漏画**（表里有、图上没有，ERR-0020 / 报告 arch-01）。
+             它的去处是 preview / 胜负图案：disp_format 直接把目标图案送点阵，
+             不经 puzzle_ctrl —— 与「拼图核心只出像素」是两回事。
+             走线：从数据框右缘 (1180,800) 右行至 x=1240，再垂直上到 y=510，
+             最后右行 50 单位插进显示子系统左缘。
+             ⚠️ 不能走高 y 的走廊 —— 「游戏控制→显示子系统」那条在 y=920 横跨
+             x=720~1415、并在 x=1415 垂直上到 545，形成一堵 U 形墙；
+             本线走 y≥510 且 x≤1290 的空白区，**与任何既有线都不相交**。 -->
+        <path d="M1180,800 H1240 V510 H1290" class="dg-wire" marker-end="url(#b1)"/>
+        <text x="1248" y="660" class="dg-lbl">pattern_mask</text>
+        <text x="1248" y="677" class="dg-lbl">（预览 / 胜负图案）</text>
 
         <!-- 控制 → 显示：状态与倒计时。必须走最下方走廊，
              若在 y≈487 直接右拐会横穿「拼图核心」方框 -->
