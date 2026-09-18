@@ -211,10 +211,13 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
 
         <path d="M875,315 V360" class="dg-rail"/>
         <line x1="245" y1="360" x2="1585" y2="360" class="dg-rail"/>
-        <text x="250" y="352" class="dg-lbl">节拍总线（不含 clk）· tick_8k · tick_1k · tick_100 · tick_2hz · tick_1hz</text>
+        <text x="250" y="352" class="dg-lbl">节拍总线（不含 clk）· rst · tick_8k · tick_1k · tick_100 · tick_2hz · tick_1hz</text>
 
         <!-- 节拍扇出：橙线＝时钟/节拍，与黑色数据线区分开。
              共 4 条：键盘输入(265) · 游戏控制(610) · 显示子系统(1380) · 音效输出(下方路径)。
+             ⚠️ 总线标签里的 rst **不另画引线**（它还要进拼图核心与 rng_lfsr，共 7 个时序实体）
+             —— 接收者清单见 DWG-02 脚注，与 clk 同一做法（画全了会横穿全图）。
+             2026-09-18 审查补：原先 rst 在整个图上没有任何落点，读者会把 rst 误读成节拍。 -->
              ⚠️ **2026-09-18 审查删掉了原先第 3 条 x=1120 的引线** ——
              它落在「拼图核心」框内（935..1150），而 **puzzle_ctrl 根本没有 tick 端口**
              （docs/01 §5.8 只有 clk/rst），连线表第 0 条也明写
@@ -302,8 +305,13 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <line x1="1020" y1="545" x2="1020" y2="730" class="dg-wire" marker-end="url(#b1)"/>
         <text x="1008" y="576" class="dg-lbl" text-anchor="end">rnd_step</text>
         <line x1="1080" y1="730" x2="1080" y2="545" class="dg-wire" marker-end="url(#b1)"/>
+        <!-- 三行标签按 docs/01 §2.1 连线表第 5 条的顺序排：target_mask · rel_mask ·
+             height · width · count · rnd。⚠️ 2026-09-18 审查补后三个名字
+             （报告 `顶层与集成-6`）：原先只到 rnd，照图连线会漏掉 puzzle_ctrl 的
+             i_height / i_width / i_piece_count —— 漏项不报错，见 CLAUDE.md §10.3。 -->
         <text x="1092" y="600" class="dg-lbl">target_mask · rel_mask</text>
-        <text x="1092" y="617" class="dg-lbl">· rnd</text>
+        <text x="1092" y="617" class="dg-lbl">· height · width</text>
+        <text x="1092" y="634" class="dg-lbl">· count · rnd</text>
 
         <!-- 图案与随机数据 → 显示子系统（pattern_mask）—— ★ 2026-09-18 审查补画。
              连线表第 12 条，此前**图上漏画**（表里有、图上没有，ERR-0020 / 报告 arch-01）。
@@ -341,12 +349,14 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
 
     <div class="footnote">
       <span>橙线 = <b>节拍使能</b>（由 <b>clk_gen</b> 扇出）—— <b>clk 不走这条线</b></span>
+      <span>⚠️ 总线里的 <b>rst</b> 送 S2~S7 全部 6 个子系统（<b>7 个时序实体</b>；含不接节拍、但都收 rst 的 <b>puzzle_ctrl</b>/<b>rng_lfsr</b>）—— 橙色 tap 只画了节拍那 4 笔，rst 的完整接收者清单见 DWG-02 脚注</span>
       <span>黑线 = 数据流 / 控制流</span>
       <span>棕色虚线 = 唯一的反馈回路</span>
       <span>外圈虚线 = <b>puzzle_top 边界</b>，不是模块</span>
       <span>「图案与随机数据」<b>不接节拍</b> —— 两个 ROM 纯组合，rng 由 <b>rnd_step</b> 请求推进</span>
       <span>本层每框 = 一个<b>功能子系统</b>，展开见 DWG-02</span>
       <span><b>clk 的分发不在本层画</b>（它是引脚级事实）—— 见 DWG-02 脚注的 8 个接收者清单</span>
+      <span><b>sw7</b> 有两个去处：① <b>时钟与节拍</b>（参与复位，本图这一笔）；② <b>顶层输出级门控</b>（要求 1 的即时熄灭）—— 第 ② 路画在 <b>DWG-02</b> 的门控虚线区（连线表第 B 条）</span>
     </div>
   </section>
 
@@ -486,7 +496,9 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <text x="1382" y="717" class="dg-dev">蜂鸣器</text>
 
         <!-- ·········· 连线 ·········· -->
-        <!-- 1 clk_gen → game_fsm -->
+        <!-- 1 clk_gen → game_fsm（rst）
+             ⚠️ 图上 rst 只画这一笔；实际收它的是 7 个时序实体（名单见下方脚注）——
+             puzzle_ctrl 与 rng_lfsr 最容易漏：漏接不报错，模块永远不复位（ERR-0010 那一类）。 -->
         <line x1="240" y1="133" x2="310" y2="133" class="dg-wire" marker-end="url(#a1)"/>
         <text x="275" y="124" class="dg-lbl" text-anchor="middle">rst</text>
 
@@ -545,8 +557,16 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <text x="594" y="196" class="dg-lbl" text-anchor="end">pattern_mask</text>
 
         <!-- 8 piece_rom → puzzle_ctrl -->
+        <!-- ⚠️ 只标 rel_mask 是不够的：piece_rom 实际出 4 路
+             （o_rel_mask / o_height / o_width / o_count），只标一路会让照图连线的人
+             漏接后三路，而 port map 漏项不报错（CLAUDE.md §10.3）。
+             2026-09-18 审查补（报告 `顶层与集成-6`）。
+             几何：4 个名字横着放不下 —— 右侧 x=800（rng 竖线）与 x=840（rnd_step 竖线）
+             两条竖线之间只剩 40 单位；故拆两行，第二行**右对齐到 x=790、向左生长**
+             （左边直到 x≈400 都是空地，符合「文字朝余量大的一侧生长」的规则）。 -->
         <path d="M720,463 H785 V435 H820" class="dg-wire" marker-end="url(#a1)"/>
-        <text x="728" y="483" class="dg-lbl">rel_mask</text>
+        <text x="790" y="518" class="dg-lbl" text-anchor="end">rel_mask · height</text>
+        <text x="790" y="535" class="dg-lbl" text-anchor="end">· width · count</text>
 
         <!-- 9 rng_lfsr → puzzle_ctrl。标签放在线**上方**（y=595），
              把线下方让给 11b 的 rnd_step —— 两条线相距 29 单位，
@@ -603,7 +623,14 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <b>seg_scan</b> · <b>dot_matrix_scan</b> · <b>buzzer_ctrl</b>。
         画成 8 条线会横穿全图；每个时序实体框内的小字已逐框标出 <code>clk</code>。
       </span>
-      <span>纯组合（<b>无 clk</b>）：<b>disp_format</b> · <b>pattern_rom</b> · <b>piece_rom</b></span>
+      <span>
+        <b>rst 同样只画一处出口（clk_gen → game_fsm 那一笔），但它送 7 个时序实体</b>（<code>clk_gen.o_rst</code>，同步高有效）：
+        <b>keypad_scan</b> · <b>seg_scan</b> · <b>dot_matrix_scan</b> · <b>rng_lfsr</b> ·
+        <b>puzzle_ctrl</b> · <b>game_fsm</b> · <b>buzzer_ctrl</b>。
+        <b>rng_lfsr 与 puzzle_ctrl 最容易漏</b> —— 漏接不报错，模块永远不复位。
+      </span>
+      <span>纯组合（<b>无 clk</b>，也不收 rst）：<b>disp_format</b> · <b>pattern_rom</b> · <b>piece_rom</b></span>
+      <span><b>sw7 有两个去向</b>：① 本图右侧「输出级门控 sys_en = SW7」（要求 1 的即时熄灭）；② <b>clk_gen.sys_en</b>（复位方程第三项）—— 图上只画了 ①，按图连线会把 `sys_en` 漏接，而 <code>port map</code> 漏项不报错（报告 <code>clk_gen-02</code> / <code>顶层与集成-2</code>）</span>
     </div>
   </section>
 
@@ -655,31 +682,37 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
         <rect x="70" y="250" width="150" height="76" rx="3" class="st" style="stroke:#5C5850;fill:#F1EFEA"/>
         <text x="145" y="284" class="st-name" text-anchor="middle">S_SELF_TEST</text>
         <text x="145" y="303" class="st-enc" text-anchor="middle">"000"</text>
+        <text x="145" y="320" class="st-enc" text-anchor="middle">出 o_blink</text>
 
         <!-- 状态 2：待机 -->
         <rect x="290" y="250" width="140" height="76" rx="3" class="st" style="stroke:#5C5850;fill:#F1EFEA"/>
         <text x="360" y="284" class="st-name" text-anchor="middle">S_IDLE</text>
         <text x="360" y="303" class="st-enc" text-anchor="middle">"001"</text>
+        <text x="360" y="320" class="st-enc" text-anchor="middle">出 o_level（关卡号）</text>
 
         <!-- 状态 3：预览 -->
         <rect x="500" y="250" width="150" height="76" rx="3" class="st" style="stroke:#9A6206;fill:#FBF2E0"/>
         <text x="575" y="284" class="st-name" text-anchor="middle">S_PREVIEW</text>
         <text x="575" y="303" class="st-enc" text-anchor="middle">"010"</text>
+        <text x="575" y="320" class="st-enc" text-anchor="middle">出 o_round_start</text>
 
         <!-- 状态 4：拼图中 -->
         <rect x="730" y="250" width="160" height="76" rx="3" class="st" style="stroke:#9A6206;fill:#FBF2E0"/>
         <text x="810" y="284" class="st-name" text-anchor="middle">S_PLAYING</text>
         <text x="810" y="303" class="st-enc" text-anchor="middle">"011"</text>
+        <text x="810" y="320" class="st-enc" text-anchor="middle">出 方向/选择/确认</text>
 
         <!-- 状态 5：胜利 -->
         <rect x="990" y="110" width="150" height="76" rx="3" class="st" style="stroke:#1D6B45;fill:#EAF4EE"/>
         <text x="1065" y="144" class="st-name" text-anchor="middle">S_WIN</text>
         <text x="1065" y="163" class="st-enc" text-anchor="middle">"100"</text>
+        <text x="1065" y="180" class="st-enc" text-anchor="middle">出 o_pattern_sel</text>
 
         <!-- 状态 6：失败 -->
         <rect x="990" y="400" width="150" height="76" rx="3" class="st" style="stroke:#9E332A;fill:#FBEDEA"/>
         <text x="1065" y="434" class="st-name" text-anchor="middle">S_FAIL</text>
         <text x="1065" y="453" class="st-enc" text-anchor="middle">"101"</text>
+        <text x="1065" y="470" class="st-enc" text-anchor="middle">出 o_pattern_sel</text>
 
         <!-- T2 -->
         <line x1="220" y1="288" x2="290" y2="288" class="dg-wire" marker-end="url(#a3)"/>
@@ -724,6 +757,8 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
 
     <div class="footnote">
       <span>状态编码 3 位（非 one-hot）</span>
+      <span>状态框第三行 = 该状态驱动的输出（Moore：输出只由状态决定）</span>
+      <span>S_PLAYING 的「方向/选择/确认」= o_dir_out / o_sel_out / o_conf_out</span>
       <span>绿 = 成功路径</span>
       <span>红 = 失败路径</span>
       <span>灰 = 无条件 / 按键迁移</span>

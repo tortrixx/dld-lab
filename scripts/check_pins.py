@@ -10,11 +10,21 @@ check_pins.py —— 引脚分配一致性检查
 所以必须用程序把"手册"和".qsf"钉死在一起做逐条比对，而不是靠人眼。
 
 【三层数据来源】
-    ① 本文件的 EXPECTED 表 —— 逐条抄自开发板手册（唯一权威）
+    ① 本文件的 EXPECTED 表 —— **逐条手抄自**开发板手册（唯一权威，但它是手抄件）
     ② quartus/puzzle.qsf      —— 实际生效的约束
-    ③ docs/04-引脚分配表.md    —— 给人看的文档（用 --markdown 生成表格片段）
+    ③ docs/04-引脚分配表.md    —— 给人看的文档（用 --markdown **从 ① 生成**，不读 ②）
 
 本脚本比对 ① 与 ②。三者不一致时，以 ① 为准。
+
+    ⚠️ 本脚本证明不了什么（2026-09-18 审查 hw-02）：
+    check() 只能证明 ".qsf == EXPECTED"；"EXPECTED == 手册"这一环**没有任何程序在管** ——
+    转录时抄错一个数字，本脚本照样全绿，--markdown 还会把同一个错数字渲染进
+    docs/04 §2 的表。转录正确性目前只有三样旁证：
+        · docs/04 §2 里 COLR 组的手册原文引文（唯一带原文的一组）
+        · docs/04 §9 的 9 个旧工程交叉核对（只可比引脚集合，不可比位序）
+        · docs/04 §7.2 的上板自检
+    待办：拿到板手册后把引脚对照页存 docs/图/，并给每个分组补手册原文引文，
+          让下一个会话能重新核对 EXPECTED 而不靠记忆。
 
 【用法】
     python scripts/check_pins.py              # 比对，打印结论
@@ -130,7 +140,7 @@ def check():
     print("=" * 64)
     print("引脚分配一致性检查")
     print("=" * 64)
-    print(f"权威表（手册）: {len(want)} 个引脚")
+    print(f"权威表（手抄自手册）: {len(want)} 个引脚")
     print(f"实际约束(.qsf): {len(actual)} 个引脚")
     print()
 
@@ -158,7 +168,7 @@ def check():
         print()
 
     if ok:
-        print("✓ 全部一致：.qsf 与手册逐条吻合")
+        print("✓ 全部一致：.qsf 与 EXPECTED 表逐条吻合（EXPECTED 为手抄件，见头部 ⚠️ 说明）")
         print()
 
     # 逐组小结（无论对错都打印，方便人工复核）
@@ -214,7 +224,80 @@ def emit_markdown():
     print()
 
 
+def _compare(actual, want):
+    """比对两个 {信号全名: 引脚号} 字典，返回 (wrong, missing, extra)。
+
+    ★ 2026-09-18 从 check() 里抽出来 —— 这样 selftest() 能对**内存里的**注入字典
+    跑同一套判据，证明"注入的错误确实会被检出"，而不用真去改 .qsf 文件。
+    """
+    wrong = [(k, want[k], actual[k]) for k in want
+             if k in actual and actual[k] != want[k]]
+    missing = [k for k in want if k not in actual]
+    extra = [k for k in actual if k not in want]
+    return wrong, missing, extra
+
+
+def selftest():
+    """负向测试：注入三类典型错误 + 一个正例，确认判据既不漏报也不误报。
+
+    ⚠️ **一个永远通过的检查器等于没有检查器。** 本函数就是为证明
+    `check_pins.py` 真能抓到错误而存在的（`docs/04` §6 记录的三种注入，
+    此前**没有可复现的命令行入口** —— 2026-09-18 审查 `hw-03` 补）。
+
+    用法：python scripts/check_pins.py --selftest
+    """
+    want = expected_flat()
+    ok = True
+
+    # 【正例】未注入时不该报任何错
+    wrong, missing, extra = _compare(dict(want), want)
+    if wrong or missing or extra:
+        print("✗ 自检·正例：未注入却报错 —— 判据有误报")
+        ok = False
+    else:
+        print("✓ 自检·正例：未注入时零误报")
+
+    # 【反例①】抄错单个引脚号：把 dot_colr[0] 改成手册里 COLR7 的脚（PIN_11）
+    inj = dict(want)
+    inj["dot_colr[0]"] = 11
+    wrong, _, _ = _compare(inj, want)
+    if any(k == "dot_colr[0]" for k, _, _ in wrong):
+        print("✓ 自检·反例①：抄错单个引脚号（dot_colr[0] → PIN_11）已检出")
+    else:
+        print("✗ 自检·反例①：抄错单个引脚号**未**检出")
+        ok = False
+
+    # 【反例②】整组位序颠倒：把 dot_colr[7:0] 的引脚号倒过来
+    inj = dict(want)
+    for i in range(8):
+        inj[f"dot_colr[{i}]"] = want[f"dot_colr[{7 - i}]"]
+    wrong, _, _ = _compare(inj, want)
+    n = len([k for k, _, _ in wrong if k.startswith("dot_colr[")])
+    if n >= 7:                      # 对称中点（i=3 与 4 互换）可能不变，允许 1 个
+        print(f"✓ 自检·反例②：整组位序颠倒已检出（{n}/8 个引脚号不符）")
+    else:
+        print(f"✗ 自检·反例②：整组位序颠倒**未**检出（只报 {n} 个）")
+        ok = False
+
+    # 【反例③】漏掉一行：删掉 kp_row[3]
+    inj = dict(want)
+    del inj["kp_row[3]"]
+    _, missing, _ = _compare(inj, want)
+    if "kp_row[3]" in missing:
+        print("✓ 自检·反例③：漏掉一行（kp_row[3]）已检出")
+    else:
+        print("✗ 自检·反例③：漏掉一行**未**检出")
+        ok = False
+
+    print()
+    print("自检通过：三类典型误配置全部可检出，正例零误报" if ok
+          else "自检失败：检查器有缺陷，不要相信它的结论")
+    return ok
+
+
 def main():
+    if "--selftest" in sys.argv:
+        return 0 if selftest() else 1
     rc = check()
     if "--markdown" in sys.argv:
         emit_markdown()
