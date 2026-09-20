@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1860" height="2179" viewBox="0 0 1860 2179"><rect width="1860" height="2179" fill="#ffffff"/><defs><marker id="ah" markerWidth="12" markerHeight="12" refX="10" refY="5" orient="auto"><path d="M0,0 L11,5 L0,10 z" fill="#000000"/></marker></defs><rect x="1130.5" y="642.7" width="623.4" height="277.8" fill="#ffffff" stroke="#000000" stroke-width="1.6" stroke-dasharray="12,8"/>
+<text x="1156.5" y="686.1" font-family="SimHei, 黑体, sans-serif" font-size="28" font-weight="bold" fill="#000000" text-anchor="start">全局规则</text>
+<text x="1156.5" y="728.1" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="start">㈠ SW7 拨至「0」：所有显示器件即时熄灭、</text>
+<text x="1156.5" y="770.1" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="start">蜂鸣器静音，同时产生复位，系统回到上电</text>
+<text x="1156.5" y="812.1" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="start">复位之后的状态。</text>
+<text x="1156.5" y="854.1" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="start">㈡ 任意状态按「开始」键：立即从第一关的</text>
+<text x="1156.5" y="896.1" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="start">图案预览重新开始，不必先回到待机状态。</text>
+<rect x="461.0" y="40.0" width="238.0" height="94.2" rx="47.1" ry="47.1" fill="#ffffff" stroke="#000000" stroke-width="2.5"/>
+<text x="580.0" y="98.0" font-family="SimHei, 黑体, sans-serif" font-size="32" font-weight="bold" fill="#000000" text-anchor="middle">上电启动</text>
+<rect x="236.1" y="170.2" width="687.8" height="76.2" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="580.0" y="219.2" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">上电复位：全部寄存器清零，保持约 10 ms</text>
+<rect x="235.4" y="282.5" width="689.1" height="160.7" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="580.0" y="331.5" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">开机自检：点阵全部显示黄色、</text>
+<text x="580.0" y="373.7" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">8 位数码管全部显示「8」，两者均以 2 Hz</text>
+<text x="580.0" y="416.0" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">闪烁，持续 2 秒</text>
+<polygon points="129.8,479.2 1064.2,479.2 1030.2,579.2 95.8,579.2" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="580.0" y="540.1" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">待机显示：点阵熄灭，DISP7 显示「5」，DISP0 显示关卡号</text>
+<polygon points="580.0,615.2 786.7,697.9 580.0,780.5 373.3,697.9" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="580.0" y="708.7" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">按「开始」键？</text>
+<rect x="286.0" y="816.5" width="588.0" height="160.7" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="580.0" y="865.5" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">本局初始化：关卡置为第 1 关，</text>
+<text x="580.0" y="907.8" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">重新采样随机种子、清除锁定标志；</text>
+<text x="580.0" y="950.0" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">零片随机散落且互不重叠</text>
+<polygon points="195.1,1013.3 998.9,1013.3 964.9,1113.3 161.1,1113.3" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="580.0" y="1074.1" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">图案预览：点阵显示完整图案，DISP7 倒计时 5→1</text>
+<rect x="89.5" y="1149.3" width="981.0" height="76.2" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="580.0" y="1198.3" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">进入拼图：限时倒计时开始（第 1 关 30 秒／第 2 关 40 秒）</text>
+<polygon points="580.0,1261.5 813.3,1354.8 580.0,1448.2 346.7,1354.8" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="580.0" y="1365.7" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">全部零片已锁定？</text>
+<polygon points="580.0,1484.2 760.0,1572.4 580.0,1660.6 400.0,1572.4" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="580.0" y="1562.2" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">零片掩码并集</text>
+<text x="580.0" y="1604.4" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">＝目标图案？</text>
+<polygon points="580.0,1696.6 721.6,1784.9 580.0,1873.1 438.4,1784.9" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="580.0" y="1774.6" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">当前是</text>
+<text x="580.0" y="1816.9" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">第 1 关？</text>
+<polygon points="382.0,1909.1 812.0,1909.1 778.0,2009.1 348.0,2009.1" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="580.0" y="1970.0" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">显示胜利图案，本局结束</text>
+<rect x="461.0" y="2045.1" width="238.0" height="94.2" rx="47.1" ry="47.1" fill="#ffffff" stroke="#000000" stroke-width="2.5"/>
+<text x="580.0" y="2103.1" font-family="SimHei, 黑体, sans-serif" font-size="32" font-weight="bold" fill="#000000" text-anchor="middle">本局结束</text>
+<polygon points="1380.0,1282.8 1560.0,1354.8 1380.0,1426.8 1200.0,1354.8" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="1380.0" y="1365.7" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">倒计时归零？</text>
+<rect x="1101.8" y="1542.4" width="556.5" height="144.9" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="1380.0" y="1587.4" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="middle">按键操作循环：选择键切换零片；</text>
+<text x="1380.0" y="1624.3" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="middle">方向键移动零片（长按 500 ms 后</text>
+<text x="1380.0" y="1661.3" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="middle">每 100 ms 连发）；确认键锁定零片。</text>
+<polygon points="1182.0,1804.8 1612.0,1804.8 1578.0,1904.8 1148.0,1904.8" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+<text x="1380.0" y="1865.7" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">显示失败图案，本局结束</text>
+<path d="M580.0,134.2 L580.0,170.2" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<path d="M580.0,246.5 L580.0,282.5" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<path d="M580.0,443.2 L580.0,479.2" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<path d="M580.0,579.2 L580.0,615.2" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<path d="M580.0,780.5 L580.0,816.5" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<path d="M580.0,977.3 L580.0,1013.3" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<path d="M580.0,1113.3 L580.0,1149.3" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<path d="M580.0,780.5 L580.0,816.5" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<text x="606.0" y="810.0" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">是</text>
+<path d="M580.0,1448.2 L580.0,1484.2" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<text x="606.0" y="1477.6" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">是</text>
+<path d="M580.0,1660.6 L580.0,1696.6" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<text x="606.0" y="1690.1" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">是</text>
+<path d="M580.0,1873.1 L580.0,1909.1" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<text x="606.0" y="1902.6" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">否</text>
+<path d="M580.0,2009.1 L580.0,2045.1" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<path d="M373.3,697.9 L50.0,697.9 L50.0,529.2 L93.8,529.2" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<text x="353.3" y="689.3" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="end">否</text>
+<path d="M813.3,1354.8 L1198.0,1354.8" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<text x="835.3" y="1346.3" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">否</text>
+<path d="M1380.0,1426.8 L1380.0,1540.4" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<text x="1396.0" y="1468.3" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">否</text>
+<path d="M1560.0,1354.8 L1708.2,1354.8 L1708.2,1854.8 L1614.0,1854.8" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<text x="1582.0" y="1346.3" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">是</text>
+<path d="M1658.2,1614.8 L1758.2,1614.8 L1758.2,1282.8 L1384.0,1282.8" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<text x="1738.2" y="1272.3" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="end">回到判断</text>
+<path d="M760.0,1572.4 L1080.0,1572.4 L1080.0,1854.8 L1146.0,1854.8" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<text x="782.0" y="1563.9" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">否</text>
+<path d="M438.4,1784.9 L50.0,1784.9 L50.0,896.9 L284.0,896.9" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/>
+<text x="418.4" y="1776.4" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="end">是</text>
+<path d="M1380.0,1904.8 L1380.0,2092.2 L701.0,2092.2" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah)"/></svg>

@@ -151,7 +151,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
       <span>时钟 <b>50 MHz</b></span>
       <span>第一层 <b>7 个子系统</b></span>
       <span>第二层 <b>11 个实体</b></span>
-      <span>版本 <b>v3 · 2026-09-17</b></span>
+      <span>版本 <b>v4 · 2026-09-20</b></span>
     </div>
   </header>
 
@@ -160,7 +160,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
     <div class="titleblock">
       <span class="dwg">DWG-01</span>
       <span class="nm">系统总体框图 · 第一层（功能子系统）</span>
-      <span class="rev">布局取自飞书白板稿（2026-09-17 第 2 版）· 共 3 图 · 第 1 图</span>
+      <span class="rev">布局取自飞书白板稿（2026-09-17 第 2 版）· 共 5 图 · 第 1 图</span>
     </div>
 
     <div class="canvas">
@@ -396,7 +396,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
     <div class="titleblock">
       <span class="dwg">DWG-02</span>
       <span class="nm">模块级框图 · 第二层（DWG-01 展开到实体）</span>
-      <span class="rev">比例 N/A · 共 3 图 · 第 2 图</span>
+      <span class="rev">比例 N/A · 共 5 图 · 第 2 图</span>
     </div>
 
     <div class="canvas">
@@ -657,7 +657,7 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
     <div class="titleblock">
       <span class="dwg">DWG-03</span>
       <span class="nm">game_fsm 状态转移图</span>
-      <span class="rev">比例 N/A · 共 3 图 · 第 3 图</span>
+      <span class="rev">比例 N/A · 共 5 图 · 第 3 图</span>
     </div>
 
     <div class="canvas">
@@ -820,3 +820,175 @@ h2{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:.01em}
   </div>
 
 </div>
+
+  <!-- ==================== 图幅 4：整机工作过程逻辑流程图 ==================== -->
+  <section class="sheet">
+    <div class="titleblock">
+      <span class="dwg">DWG-04</span>
+      <span class="nm">整机工作过程逻辑流程图</span>
+      <span class="rev">比例 N/A · 共 5 图 · 第 4 图</span>
+    </div>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1860 2179" role="img" aria-label="整机工作过程逻辑流程图"><defs><marker id="ah4" markerWidth="12" markerHeight="12" refX="10" refY="5" orient="auto"><path d="M0,0 L11,5 L0,10 z" fill="#000000"/></marker></defs><rect x="1130.5" y="642.7" width="623.4" height="277.8" fill="#ffffff" stroke="#000000" stroke-width="1.6" stroke-dasharray="12,8"/>
+      <text x="1156.5" y="686.1" font-family="SimHei, 黑体, sans-serif" font-size="28" font-weight="bold" fill="#000000" text-anchor="start">全局规则</text>
+      <text x="1156.5" y="728.1" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="start">㈠ SW7 拨至「0」：所有显示器件即时熄灭、</text>
+      <text x="1156.5" y="770.1" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="start">蜂鸣器静音，同时产生复位，系统回到上电</text>
+      <text x="1156.5" y="812.1" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="start">复位之后的状态。</text>
+      <text x="1156.5" y="854.1" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="start">㈡ 任意状态按「开始」键：立即从第一关的</text>
+      <text x="1156.5" y="896.1" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="start">图案预览重新开始，不必先回到待机状态。</text>
+      <rect x="461.0" y="40.0" width="238.0" height="94.2" rx="47.1" ry="47.1" fill="#ffffff" stroke="#000000" stroke-width="2.5"/>
+      <text x="580.0" y="98.0" font-family="SimHei, 黑体, sans-serif" font-size="32" font-weight="bold" fill="#000000" text-anchor="middle">上电启动</text>
+      <rect x="236.1" y="170.2" width="687.8" height="76.2" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="580.0" y="219.2" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">上电复位：全部寄存器清零，保持约 10 ms</text>
+      <rect x="235.4" y="282.5" width="689.1" height="160.7" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="580.0" y="331.5" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">开机自检：点阵全部显示黄色、</text>
+      <text x="580.0" y="373.7" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">8 位数码管全部显示「8」，两者均以 2 Hz</text>
+      <text x="580.0" y="416.0" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">闪烁，持续 2 秒</text>
+      <polygon points="129.8,479.2 1064.2,479.2 1030.2,579.2 95.8,579.2" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="580.0" y="540.1" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">待机显示：点阵熄灭，DISP7 显示「5」，DISP0 显示关卡号</text>
+      <polygon points="580.0,615.2 786.7,697.9 580.0,780.5 373.3,697.9" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="580.0" y="708.7" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">按「开始」键？</text>
+      <rect x="286.0" y="816.5" width="588.0" height="160.7" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="580.0" y="865.5" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">本局初始化：关卡置为第 1 关，</text>
+      <text x="580.0" y="907.8" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">重新采样随机种子、清除锁定标志；</text>
+      <text x="580.0" y="950.0" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">零片随机散落且互不重叠</text>
+      <polygon points="195.1,1013.3 998.9,1013.3 964.9,1113.3 161.1,1113.3" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="580.0" y="1074.1" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">图案预览：点阵显示完整图案，DISP7 倒计时 5→1</text>
+      <rect x="89.5" y="1149.3" width="981.0" height="76.2" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="580.0" y="1198.3" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">进入拼图：限时倒计时开始（第 1 关 30 秒／第 2 关 40 秒）</text>
+      <polygon points="580.0,1261.5 813.3,1354.8 580.0,1448.2 346.7,1354.8" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="580.0" y="1365.7" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">全部零片已锁定？</text>
+      <polygon points="580.0,1484.2 760.0,1572.4 580.0,1660.6 400.0,1572.4" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="580.0" y="1562.2" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">零片掩码并集</text>
+      <text x="580.0" y="1604.4" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">＝目标图案？</text>
+      <polygon points="580.0,1696.6 721.6,1784.9 580.0,1873.1 438.4,1784.9" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="580.0" y="1774.6" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">当前是</text>
+      <text x="580.0" y="1816.9" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">第 1 关？</text>
+      <polygon points="382.0,1909.1 812.0,1909.1 778.0,2009.1 348.0,2009.1" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="580.0" y="1970.0" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">显示胜利图案，本局结束</text>
+      <rect x="461.0" y="2045.1" width="238.0" height="94.2" rx="47.1" ry="47.1" fill="#ffffff" stroke="#000000" stroke-width="2.5"/>
+      <text x="580.0" y="2103.1" font-family="SimHei, 黑体, sans-serif" font-size="32" font-weight="bold" fill="#000000" text-anchor="middle">本局结束</text>
+      <polygon points="1380.0,1282.8 1560.0,1354.8 1380.0,1426.8 1200.0,1354.8" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="1380.0" y="1365.7" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">倒计时归零？</text>
+      <rect x="1101.8" y="1542.4" width="556.5" height="144.9" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="1380.0" y="1587.4" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="middle">按键操作循环：选择键切换零片；</text>
+      <text x="1380.0" y="1624.3" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="middle">方向键移动零片（长按 500 ms 后</text>
+      <text x="1380.0" y="1661.3" font-family="SimSun, 宋体, serif" font-size="28" font-weight="normal" fill="#000000" text-anchor="middle">每 100 ms 连发）；确认键锁定零片。</text>
+      <polygon points="1182.0,1804.8 1612.0,1804.8 1578.0,1904.8 1148.0,1904.8" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+      <text x="1380.0" y="1865.7" font-family="SimSun, 宋体, serif" font-size="32" font-weight="normal" fill="#000000" text-anchor="middle">显示失败图案，本局结束</text>
+      <path d="M580.0,134.2 L580.0,170.2" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <path d="M580.0,246.5 L580.0,282.5" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <path d="M580.0,443.2 L580.0,479.2" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <path d="M580.0,579.2 L580.0,615.2" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <path d="M580.0,780.5 L580.0,816.5" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <path d="M580.0,977.3 L580.0,1013.3" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <path d="M580.0,1113.3 L580.0,1149.3" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <path d="M580.0,780.5 L580.0,816.5" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <text x="606.0" y="810.0" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">是</text>
+      <path d="M580.0,1448.2 L580.0,1484.2" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <text x="606.0" y="1477.6" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">是</text>
+      <path d="M580.0,1660.6 L580.0,1696.6" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <text x="606.0" y="1690.1" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">是</text>
+      <path d="M580.0,1873.1 L580.0,1909.1" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <text x="606.0" y="1902.6" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">否</text>
+      <path d="M580.0,2009.1 L580.0,2045.1" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <path d="M373.3,697.9 L50.0,697.9 L50.0,529.2 L93.8,529.2" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <text x="353.3" y="689.3" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="end">否</text>
+      <path d="M813.3,1354.8 L1198.0,1354.8" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <text x="835.3" y="1346.3" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">否</text>
+      <path d="M1380.0,1426.8 L1380.0,1540.4" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <text x="1396.0" y="1468.3" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">否</text>
+      <path d="M1560.0,1354.8 L1708.2,1354.8 L1708.2,1854.8 L1614.0,1854.8" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <text x="1582.0" y="1346.3" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">是</text>
+      <path d="M1658.2,1614.8 L1758.2,1614.8 L1758.2,1282.8 L1384.0,1282.8" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <text x="1738.2" y="1272.3" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="end">回到判断</text>
+      <path d="M760.0,1572.4 L1080.0,1572.4 L1080.0,1854.8 L1146.0,1854.8" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <text x="782.0" y="1563.9" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="start">否</text>
+      <path d="M438.4,1784.9 L50.0,1784.9 L50.0,896.9 L284.0,896.9" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/>
+      <text x="418.4" y="1776.4" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="end">是</text>
+      <path d="M1380.0,1904.8 L1380.0,2092.2 L701.0,2092.2" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah4)"/></svg>
+    </div>
+
+    <div class="footnote">
+      <span>圆角矩形 = <b>起止</b>，矩形 = <b>处理</b>，平行四边形 = <b>输入 / 输出</b>，菱形 = <b>判断</b></span>
+      <span>实线箭头 = 流程方向；虚线框 = <b>全局规则</b>（不改变流程走向）</span>
+      <span>判定顺序：先看是否全部锁定，再看倒计时是否归零；全部锁定后按<b>掩码并集</b>判定</span>
+      <span>本图对应 <code>docs/01-系统设计.md</code> §2.3 与 <code>docs/02-模块详细设计.md</code> §12.4</span>
+    </div>
+  </section>
+
+  <!-- ==================== 图幅 5：主状态机 MDS 助记状态图 ==================== -->
+  <section class="sheet">
+    <div class="titleblock">
+      <span class="dwg">DWG-05</span>
+      <span class="nm">主状态机 MDS 助记状态图</span>
+      <span class="rev">比例 N/A · 共 5 图 · 第 5 图</span>
+    </div>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1720 1206" role="img" aria-label="主状态机 MDS 助记状态图"><defs><marker id="ah5" markerWidth="12" markerHeight="12" refX="10" refY="5" orient="auto"><path d="M0,0 L11,5 L0,10 z" fill="#000000"/></marker></defs><rect x="55.0" y="44.0" width="470.0" height="212.0" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+
+      <text x="290.0" y="116.2" font-family="SimHei, 黑体, sans-serif" font-size="34" font-weight="bold" fill="#000000" text-anchor="middle">开机自检</text>
+      <text x="290.0" y="153.9" font-family="SimSun, 宋体, serif" font-size="30" font-weight="normal" fill="#000000" text-anchor="middle">"000"</text>
+      <text x="290.0" y="191.7" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="middle">出：点阵全黄闪烁，</text>
+      <text x="290.0" y="225.2" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="middle">数码管全显「8」</text>
+      <rect x="625.0" y="44.0" width="470.0" height="212.0" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+
+      <text x="860.0" y="116.2" font-family="SimHei, 黑体, sans-serif" font-size="34" font-weight="bold" fill="#000000" text-anchor="middle">待机</text>
+      <text x="860.0" y="153.9" font-family="SimSun, 宋体, serif" font-size="30" font-weight="normal" fill="#000000" text-anchor="middle">"001"</text>
+      <text x="860.0" y="191.7" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="middle">出：点阵熄灭；</text>
+      <text x="860.0" y="225.2" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="middle">DISP7=5，DISP0=关卡号</text>
+      <rect x="1195.0" y="44.0" width="470.0" height="212.0" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+
+      <text x="1430.0" y="116.2" font-family="SimHei, 黑体, sans-serif" font-size="34" font-weight="bold" fill="#000000" text-anchor="middle">图案预览</text>
+      <text x="1430.0" y="153.9" font-family="SimSun, 宋体, serif" font-size="30" font-weight="normal" fill="#000000" text-anchor="middle">"010"</text>
+      <text x="1430.0" y="191.7" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="middle">出：点阵示目标图案；</text>
+      <text x="1430.0" y="225.2" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="middle">DISP7=预览倒计时</text>
+      <rect x="1195.0" y="514.0" width="470.0" height="212.0" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+
+      <text x="1430.0" y="586.2" font-family="SimHei, 黑体, sans-serif" font-size="34" font-weight="bold" fill="#000000" text-anchor="middle">拼图中</text>
+      <text x="1430.0" y="623.9" font-family="SimSun, 宋体, serif" font-size="30" font-weight="normal" fill="#000000" text-anchor="middle">"011"</text>
+      <text x="1430.0" y="661.7" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="middle">出：点阵示零片；</text>
+      <text x="1430.0" y="695.2" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="middle">DISP4、3=拼图倒计时</text>
+      <rect x="625.0" y="954.0" width="470.0" height="212.0" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+
+      <text x="860.0" y="1026.2" font-family="SimHei, 黑体, sans-serif" font-size="34" font-weight="bold" fill="#000000" text-anchor="middle">胜利</text>
+      <text x="860.0" y="1063.9" font-family="SimSun, 宋体, serif" font-size="30" font-weight="normal" fill="#000000" text-anchor="middle">"100"</text>
+      <text x="860.0" y="1101.7" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="middle">出：点阵示胜利图案</text>
+      <text x="860.0" y="1135.2" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="middle">（对勾）</text>
+      <rect x="1195.0" y="954.0" width="470.0" height="212.0" fill="#ffffff" stroke="#000000" stroke-width="2.0"/>
+
+      <text x="1430.0" y="1026.2" font-family="SimHei, 黑体, sans-serif" font-size="34" font-weight="bold" fill="#000000" text-anchor="middle">失败</text>
+      <text x="1430.0" y="1063.9" font-family="SimSun, 宋体, serif" font-size="30" font-weight="normal" fill="#000000" text-anchor="middle">"101"</text>
+      <text x="1430.0" y="1101.7" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="middle">出：点阵示失败图案</text>
+      <text x="1430.0" y="1135.2" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="middle">（叉）</text>
+      <path d="M525.0,150.0 L623.0,150.0" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah5)"/>
+      <text x="575.0" y="142.2" font-family="SimSun, 宋体, serif" font-size="24" font-weight="normal" fill="#000000" text-anchor="middle">自检结束</text>
+      <path d="M1095.0,150.0 L1193.0,150.0" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah5)"/>
+      <text x="1145.0" y="141.5" font-family="SimSun, 宋体, serif" font-size="22" font-weight="normal" fill="#000000" text-anchor="middle">按开始键</text>
+      <path d="M1474.0,256.0 L1474.0,512.0" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah5)"/>
+      <text x="1492.0" y="393.2" font-family="SimSun, 宋体, serif" font-size="24" font-weight="normal" fill="#000000" text-anchor="start">预览 5 秒结束</text>
+      <path d="M1386.0,514.0 L1386.0,254.0" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah5)"/>
+      <text x="1368.0" y="393.2" font-family="SimSun, 宋体, serif" font-size="24" font-weight="normal" fill="#000000" text-anchor="end">第一关过关：关卡←2，重开一局</text>
+      <path d="M1195.0,620.0 L860.0,620.0 L860.0,952.0" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah5)"/>
+      <text x="878.0" y="795.2" font-family="SimSun, 宋体, serif" font-size="24" font-weight="normal" fill="#000000" text-anchor="start">第二关过关</text>
+      <path d="M1430.0,726.0 L1430.0,952.0" fill="none" stroke="#000000" stroke-width="2.0" marker-end="url(#ah5)"/>
+      <text x="1448.0" y="848.2" font-family="SimSun, 宋体, serif" font-size="24" font-weight="normal" fill="#000000" text-anchor="start">超时，或全锁未拼对</text>
+      <rect x="80.0" y="630.0" width="660.0" height="300.0" fill="#ffffff" stroke="#000000" stroke-width="1.6" stroke-dasharray="12,8"/>
+      <text x="106.0" y="676.0" font-family="SimHei, 黑体, sans-serif" font-size="25" font-weight="bold" fill="#000000" text-anchor="start">全局迁移规则</text>
+      <text x="106.0" y="713.5" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="start">㈠ 复位：rst 有效（BTN0 按键复位／上电复</text>
+      <text x="106.0" y="751.0" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="start">位／SW7 拨至「0」）→ 任意状态回到</text>
+      <text x="106.0" y="788.5" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="start">S_SELF_TEST，全部寄存器清零。</text>
+      <text x="106.0" y="826.0" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="start">㈡ 重开：任意状态按「开始」键 → 直接进入</text>
+      <text x="106.0" y="863.5" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="start">S_PREVIEW（不经 S_IDLE）；S_WIN、S_FAIL</text>
+      <text x="106.0" y="901.0" font-family="SimSun, 宋体, serif" font-size="25" font-weight="normal" fill="#000000" text-anchor="start">显示期间同样适用。</text></svg>
+    </div>
+
+    <div class="footnote">
+      <span>矩形 = <b>状态</b>；框内第一行为状态名、第二行为 3 位编码、第三行起为<b>该状态的输出</b>（MDS 图惯例）</span>
+      <span>本状态机为 <b>Moore 型</b>：全部输出只由当前状态与内部计数器决定，输入仅影响次态</span>
+      <span><b>拼图中</b>有三条出口：第一关过关回预览、第二关过关转胜利、超时或全锁未拼对转失败</span>
+      <span>复位与重开是覆盖全部 6 个状态的全局迁移，以左下虚线框单列；迁移边逐条对应 <code>docs/01</code> §5.10</span>
+    </div>
+  </section>
