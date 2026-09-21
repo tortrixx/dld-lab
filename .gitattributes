@@ -1,0 +1,49 @@
+# ============================================================
+# 换行与文本处理
+# ------------------------------------------------------------
+# 仓库内文本一律以 LF 存储，避免 Windows(CRLF) 与 macOS(LF)
+# 之间来回编辑时产生整文件 diff。
+# ============================================================
+* text=auto eol=lf
+
+# ============================================================
+# 按类型显式声明（覆盖 * 的通配）
+# ============================================================
+# 二进制：不做换行转换，diff 中按二进制处理
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.pdf    binary
+*.docx   binary
+*.doc    binary
+*.ttf    binary
+*.otf    binary
+*.pof    binary
+*.sof    binary
+
+# 文本：保持 LF
+*.md     text eol=lf
+*.vhd    text eol=lf
+*.qsf    text eol=lf
+*.qpf    text eol=lf
+*.sdc    text eol=lf
+*.tcl    text eol=lf
+*.py     text eol=lf
+*.vwf    text eol=lf
+*.html   text eol=lf
+*.svg    text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.json   text eol=lf
+
+# ============================================================
+# GitHub 语言统计
+# ============================================================
+*.vhd   linguist-language=VHDL
+*.vwf   linguist-language=VHDL
+*.tcl   linguist-language=Tcl
+
+# 生成的交付物不计入语言统计
+report/*.pdf   linguist-generated=true
+report/*.docx  linguist-generated=true

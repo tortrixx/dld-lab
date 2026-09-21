@@ -118,7 +118,7 @@
 | `sim/` | `.vwf` 激励文件与仿真输出 |
 | `quartus/` | `.qpf` / `.qsf` 工程与引脚约束 |
 | `scripts/` | TCL 与 Python 自动化脚本 |
-| `report/` | （预留）导出物 |
+| `report/` | **交付物**：初步设计方案的 `.docx` / `.pdf`、封面方案对比 PDF、`typst/` 排版源、`图/` 插图 |
 
 > 根目录下三份课程 PDF 已在 `.gitignore` 中，**保留在本地作参考，不入库**。
 
@@ -379,9 +379,27 @@ python scripts/sim.py check <模块>
 
 ### 5.4 环境备忘
 
+**文本与图像处理**
 - 从中文 PDF 提取文本：`pdftotext -layout -enc UTF-8`（**必须带 `-enc UTF-8`**，否则中文全丢）
-- PDF 转图片：`pdftoppm`（在 MiKTeX 里：`C:\Users\sznnn\AppData\Local\Programs\MiKTeX\miktex\bin\x64\pdftoppm.exe`）
-- Python 3.14，已装 `numpy`、`opencv-python`（无 PyPDF/pdfplumber）
+- PDF 转图片：`pdftoppm`（Windows 上随 MiKTeX 分发，位于其 `miktex\bin\x64\` 目录）
+- Python 已装 `numpy`、`pypdf`、`Pillow`；
+  ⚠️ **本机没有 `python-docx`** —— 要解析 `.docx` 直接用标准库 `zipfile` + `xml.etree`
+  读 `word/document.xml`（标题层级看 `w:pStyle` / `w:outlineLvl`，正文见 `w:body`）
+
+**文档交付物（Typst）**
+- 排版源在 `report/typst/`：`template.typ`（版式模板）/ `main.typ`（正文）/
+  `covers.typ` + `cover-compare.typ`（封面方案集）。**本机无 brew**，用官方 release 二进制
+- 编译（**先 `cd` 到源目录、输出写绝对路径**）：
+  ```bash
+  cd report/typst
+  <typst> compile --root <仓库根> main.typ "<仓库根>/report/初步设计方案.pdf"
+  ```
+  ⚠️ cwd 不对时 Typst 找不到输入文件，但**旧产物原地不动、不报错** ——
+  极易误判成"编译成功"，务必核对产物时间戳
+- 版式核查不必装 `pdftoppm`：`typst compile --format png --ppi 100 main.typ "out-{p}.png"` 直接出图
+- ⚠️ **Typst 的 `figure` 默认不可断页** —— 内含的长表放不下时会**整张后移**，
+  把上一页留成大片空白；必须显式
+  `show figure.where(kind: table): set block(breakable: true)` 才会按行断开并重复表头
 
 > ⚠️ **本仓库所有 `.md` 都是 UTF-8 无 BOM，而 PowerShell 5.1 默认按 ANSI(CP936) 解码。**
 > 后果不是报错，而是**静默读出乱码**：CP936 的双字节汉字会把紧跟的 `\n` 吃掉，
