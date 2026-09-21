@@ -154,7 +154,7 @@ Please use Quartus II to view the waveform report data.
    - 从 `db_vdb.dll` 里提取字符串，找到 `vdb_vec_lexer.cpp` / `vdb_vec_parser.ypp` /
      "Pattern Section" 等线索 → 确认**存在文本格式解析器**，但**语法仍拼不出来**
 4. **转折点：转换思路，去机器上找现成的 `.vwf`**。
-   在用户桌面发现 `C:\Users\sznnn\Desktop\VHDL\` 下有 **9 个此前做过的 Quartus 工程**，
+   在用户桌面的 `VHDL\` 目录下发现 **9 个此前做过的 Quartus 工程**，
    每个都带 `.vwf` / `.pin` / `.sim.rpt` —— **这些是曾经在开发板上跑通过的**。
    读 `mux4/mux4.vwf` 后，`.vwf` 的文本格式**一次性完全确定**。
 5. **验证格式**：按学到的格式手写一个 `.vwf` 喂给 `quartus_sim`，
