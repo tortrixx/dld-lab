@@ -1,0 +1,11 @@
+#import "covers.typ": *
+#set page(paper: "a4")
+#cover-a(ctx-demo)
+#pagebreak()
+#cover-b(ctx-demo)
+#pagebreak()
+#cover-c(ctx-demo)
+#pagebreak()
+#cover-d(ctx-demo)
+#pagebreak()
+#cover-e(ctx-demo)
