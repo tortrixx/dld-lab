@@ -161,3 +161,7 @@ set_location_assignment PIN_140 -to ld[12]
 set_location_assignment PIN_139 -to ld[13]
 set_location_assignment PIN_138 -to ld[14]
 set_location_assignment PIN_137 -to ld[15]
+
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS INPUT TRI-STATED"
+set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
+set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"

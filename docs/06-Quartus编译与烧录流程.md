@@ -150,14 +150,44 @@ quartus_tan puzzle     # 经典时序分析（Fmax）
 quartus_sta puzzle     # TimeQuest 时序分析（Fmax，本工程用这个读数）
 ```
 
-### 3.3 产物在哪
+### 3.3 产物在哪 ⚠️ **9.1 不生成 `output_files/` 目录**
 
-```
-quartus/output_files/puzzle.sof   # JTAG 下载用（SRAM 目标，掉电即失）
-quartus/output_files/puzzle.pof   # 配置闪存用（掉电不丢，推荐）
-quartus/output_files/puzzle.fit.rpt / .fit.summary   # 资源利用率（报告评分项④）
-quartus/output_files/puzzle.sta.rpt                  # Fmax
-```
+> ⚠️ **Quartus II 9.1 把编译产物直接写在工程目录 `quartus/` 下**；
+> `output_files/` 是 **10.x 之后**才成为默认的。找不到 `quartus/output_files` 是**正常的**，
+> 不是编译没成功 —— 看编译日志最后一行是不是
+> `Info: Quartus II Full Compilation was successful. 0 errors, … warnings`。
+
+| 文件（都在 `quartus/` 下） | 是什么 | 用途 |
+|---|---|---|
+| **`puzzle.pof`** | **编程文件** | **烧录用它**（MAX II 是非易失器件，`.pof` 写进片内配置闪存，掉电不丢） |
+| `puzzle.fit.summary` | 资源利用率摘要（LE / 引脚） | **实验报告评分项④** 直接抄这个 |
+| `puzzle.tan.summary` | 时序摘要（Fmax） | 同上，回填 `docs/04` §5.2 |
+| `puzzle.fit.rpt` / `map.rpt` / `tan.rpt` | 详细报告 | 需要截图时打开 |
+| `puzzle.pin` | 引脚汇总表 | 与 `docs/04` 对账 |
+| `puzzle.done` / `puzzle.dpf` | 编译流程标记 | 不用管 |
+| `db/` `incremental_db/` | 中间数据 | **不要删**（删了下次全量重编），但也**不要提交进 git** |
+
+> ⚠️ **每次编译后 Quartus 会往 `quartus/puzzle.qsf` 末尾追加约 3 行**
+> （`RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND`、`LL_ROOT_REGION`、`LL_MEMBER_STATE`），
+> 并把文件末尾的换行去掉。**这是正常现象**，不是配置被改坏了。
+> 想做提交就把这几行一起提交，不必手工回退（回退了下一次编译又会加上）。
+
+> 📌 **本工程实测（2026-09-23 用户本机编译）**：
+> `board_test_top` → `Total logic elements : 439 / 1,270 ( 35 % )`、`Total pins : 68 / 116`，
+> `Clock Setup: 'clk' … 64.79 MHz`；日志末行 `0 errors, 5 warnings`（5 条均为无害告警）。
+
+### 3.3.1 想看"是否满足 50MHz 的余量"，要用 TimeQuest
+
+编译日志里跑的是**经典时序分析器**（`quartus_tan`），它**不读 `.sdc` 约束** ——
+所以它的报告里是 `Required Time: None`、`Slack: N/A`，**只有一个 Fmax 数值，没有合格判定**。
+
+要看带约束的余量（报告更硬气）：
+
+- GUI：**Tools → TimeQuest Timing Analyzer**（它读 `quartus/puzzle.sdc`），
+  看 `Report → Timing → Clock Setup: 'clk'` 的 Slack；
+- 命令行：`quartus_sta puzzle` → 结果在 `quartus/puzzle.sta.rpt` 的 `Fmax Summary`。
+
+> 本工程实测（整机 `puzzle_top`）：**Fmax 63.66 MHz、最差裕量 +4.06 ns**（约束 20 ns）✓
 
 ### 3.4 本工程实测结果（可直接写进实验报告）
 
@@ -184,9 +214,9 @@ quartus/output_files/puzzle.sta.rpt                  # Fmax
      指向 `C:\QuartusII91\QuartusII91\quartus\drivers\usb-blaster`）。
 2. 点 **Auto Detect** → 应识别出 **EPM1270**。
    - 识别不到：检查 JTAG 排线方向、板子电源、有没有别的人占用下载线。
-3. 点 **Add File...** → 选 `quartus/output_files/puzzle.pof`。
-   - ⚠️ 用 **`.pof`**（配置闪存）而不是 `.sof`：`.pof` 掉电不丢，
-     教师验收时重新上电即用；`.sof` 只写 SRAM，掉电就没了。
+3. 点 **Add File...** → 选 **`quartus/puzzle.pof`**（⚠️ 9.1 就在工程目录下，没有 `output_files/`）。
+   - ⚠️ 用 **`.pof`** 而不是 `.sof`：MAX II 是非易失器件，`.pof` 写进片内配置闪存，
+     掉电不丢，教师验收时重新上电即用；`.sof` 只写 SRAM，掉电就没了（本工程也不生成它）。
 4. 勾选 **Program/Configure**（如果要烧到板载配置闪存，通常同时勾
    **Program/Configure** 即可；部分板子还需勾 **Verify**）。
 5. 点 **Start** → 进度条到 100%、显示 **Successful** 即完成。
@@ -196,7 +226,7 @@ quartus/output_files/puzzle.sta.rpt                  # Fmax
 ### 4.3 命令行烧录（等价操作，便于脚本化）
 
 ```bash
-quartus_pgm -c USB-Blaster -m jtag -o "p;quartus/output_files/puzzle.pof"
+quartus_pgm -c USB-Blaster -m jtag -o "p;quartus/puzzle.pof"
 ```
 
 参数含义：`-c` 下载线型号 · `-m jtag` 模式 · `p;文件` = program + 文件名。
@@ -205,19 +235,27 @@ quartus_pgm -c USB-Blaster -m jtag -o "p;quartus/output_files/puzzle.pof"
 
 ## 5. 在"硬件自检"与"整机拼图"之间切换顶层
 
-`.qsf` 里**源文件已经全部登记**，切换只需要改两处：
+`.qsf` 里**源文件已经全部登记**，切换只需要改两处：`TOP_LEVEL_ENTITY`，
+以及 16 行 `ld[…]` 引脚约束（`puzzle_top` 没有 `ld` 端口，留着会让 fitter 报错）。
 
-| # | 改什么 | 位置 |
-|---|---|---|
-| 1 | `set_global_assignment -name TOP_LEVEL_ENTITY <顶层名>` | `quartus/puzzle.qsf` 第 15 行附近 |
-| 2 | **16 行 `ld[…]` 引脚约束**：编 `puzzle_top` 时注释掉；切回 `board_test_top` 时恢复 | `quartus/puzzle.qsf` 文件末尾「16 个 LED」一节 |
+**一条命令搞定**（建议用这个，手工要改 17 处很容易漏）：
 
-- 切到 **`puzzle_top`（整机）**：改第 1 处为 `puzzle_top` + 注释掉那 16 行。
-  （这一步是 `docs/02` §14.1.4「阶段 4 工程迁移三步」的第 2、3 步，第 1 步——加源文件——已经做完。）
-- 切回 **`board_test_top`（自检）**：改回 `board_test_top` + 取消那 16 行的注释。
+```bash
+python scripts/set_top.py check            # 看当前是哪个顶层、ld 约束是否一致
+python scripts/set_top.py board_test_top   # 切到硬件自检（默认状态，含 16 个 LED）
+python scripts/set_top.py puzzle_top       # 切到整机拼图（自动注释 ld 约束）
+```
 
+脚本只动这两处、幂等、**不写任何引脚号**（按 `-to ld[` 匹配，引脚号的唯一真值源仍是 `.qsf`）。
+切换后**必须重新编译**（`quartus/` 下的 `.pof` 才会变成新顶层的）。
+
+> 手工等价操作（不想用脚本时）：
+> ① `quartus/puzzle.qsf` 里 `set_global_assignment -name TOP_LEVEL_ENTITY <顶层名>`；
+> ② 文件末尾「16 个 LED」那 16 行：切 `puzzle_top` 时注释掉，切回 `board_test_top` 时放开。
+>
 > ⚠️ **不能用 `scripts/build.tcl --top` 代替这两步**：`--top` 只改顶层名，
 > 解决不了 `ld` 约束悬挂的问题（fitter 会报"引脚分配给不存在的端口"）。
+> ⚠️ 改 `.qsf` 前先关掉 Quartus 里的工程（或改完选 Reload），否则可能被它写回覆盖。
 
 ---
 

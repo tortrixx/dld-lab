@@ -970,6 +970,9 @@
 - `docs/06-Quartus编译与烧录流程.md`：建工程 → 编译 → 引脚分配 → 下载烧录的完整分步操作，
   含实测资源/时序数据与常见报错处置
 - `scripts/_gen_fitcheck.py`：按 `.qsf` 生成临时工程，**不动仓库**地验证任一顶层能否编译
+- `scripts/encoding.py`：`rtl/*.vhd` 的 **UTF-8 ⇄ GBK** 双向转换（见下方 Fixed 第 1 条）
+- `scripts/set_top.py`：一条命令在 `board_test_top` 与 `puzzle_top` 之间切换顶层
+  （同时改 `TOP_LEVEL_ENTITY` 与 16 行 `ld` 约束，幂等、不写引脚号）
 
 **Changed**
 - ⭐ **`puzzle_ctrl` 的实现方式（面积换时间）**：4 路并行 `place()` 平移 + 掩码求交
@@ -1002,7 +1005,11 @@
 | `puzzle_top` | 1226 / 1270（97%） | 52 / 116 | **63.66 MHz** | 全流程编译通过、时序收敛 |
 
 **Docs**
-- `ERRORS.md` 新增 ERR-0026（放不进器件）/ ERR-0027（时序不收敛），两条都按九字段写，
-  定位过程保留三次迭代的实测 Fmax 数值
+- `ERRORS.md` 新增 ERR-0026（放不进器件）/ ERR-0027（时序不收敛）/ ERR-0028（Quartus 中文乱码），
+  三条都按九字段写，定位过程保留实测数值
+- ⭐ **订正 `docs/06` 的一个事实错误**：**Quartus II 9.1 的编译产物直接写在工程目录 `quartus/` 下，
+  不生成 `output_files/`**（那是 10.x 之后的默认）—— 原稿写成 `quartus/output_files/…`，
+  用户实际编译后"找不到产物"。已补 §3.3 产物清单 + §3.3.1「经典时序分析器不读 `.sdc`，
+  要看带约束余量请用 TimeQuest」
 
 ---
