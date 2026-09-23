@@ -40,12 +40,26 @@ set_global_assignment -name SDC_FILE puzzle.sdc
 
 # ------------------------------------------------------------
 # 源文件（路径相对于本工程目录 quartus/）
+#   全部 14 个文件：11 个实体 + 1 个包 + 2 个顶层
+#   ⚠️ 顶层只能有一个：当前为 board_test_top（上板自检，见 PROGRESS.md 阶段 2）。
+#      要编整机拼图游戏，按 docs/02 §14.1.4 的三步切到 puzzle_top：
+#        ① 本行 TOP_LEVEL_ENTITY 改为 puzzle_top
+#        ② 把下面 16 行 ld 引脚约束注释掉（puzzle_top 没有 ld 端口）
+#      —— 源文件在下表中已经全部登记，不需要再加。
 # ------------------------------------------------------------
 set_global_assignment -name VHDL_FILE ../rtl/puzzle_pkg.vhd
 set_global_assignment -name VHDL_FILE ../rtl/clk_gen.vhd
+set_global_assignment -name VHDL_FILE ../rtl/keypad_scan.vhd
 set_global_assignment -name VHDL_FILE ../rtl/seg_scan.vhd
 set_global_assignment -name VHDL_FILE ../rtl/dot_matrix_scan.vhd
-set_global_assignment -name VHDL_FILE ../rtl/keypad_scan.vhd
+set_global_assignment -name VHDL_FILE ../rtl/pattern_rom.vhd
+set_global_assignment -name VHDL_FILE ../rtl/piece_rom.vhd
+set_global_assignment -name VHDL_FILE ../rtl/rng_lfsr.vhd
+set_global_assignment -name VHDL_FILE ../rtl/puzzle_ctrl.vhd
+set_global_assignment -name VHDL_FILE ../rtl/disp_format.vhd
+set_global_assignment -name VHDL_FILE ../rtl/game_fsm.vhd
+set_global_assignment -name VHDL_FILE ../rtl/buzzer_ctrl.vhd
+set_global_assignment -name VHDL_FILE ../rtl/puzzle_top.vhd
 set_global_assignment -name VHDL_FILE ../rtl/board_test_top.vhd
 
 # ------------------------------------------------------------

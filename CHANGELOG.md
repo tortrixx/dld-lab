@@ -956,3 +956,47 @@
 ### Removed
 ### Docs
 -->
+
+### 2026-09-23 · 第 19 次会话 · 阶段 2/3/4 编码全部完成，整机编译通过并收敛时序
+
+**Added**
+- `rtl/` 下 **14 个文件全部写出**（此前为空）：`puzzle_pkg` · `clk_gen` · `keypad_scan` ·
+  `seg_scan` · `dot_matrix_scan` · `pattern_rom` · `piece_rom` · `rng_lfsr` · `puzzle_ctrl` ·
+  `disp_format` · `game_fsm` · `buzzer_ctrl` · `puzzle_top` · `board_test_top`
+  - 全部 VHDL-93 子集 + `numeric_std`，注释全中文，文件头标注"所属子系统 / 对应需求"
+  - 顶层一律 `component` 声明 + `port map` 具名关联（硬约束 12）
+  - `puzzle_pkg` 的常量、位序、状态编码单点定义；图案/零片掩码照 `docs/02` §2.5 抄
+- `quartus/puzzle.qsf`：源文件表补全为 14 个（原先只有 6 个）
+- `docs/06-Quartus编译与烧录流程.md`：建工程 → 编译 → 引脚分配 → 下载烧录的完整分步操作，
+  含实测资源/时序数据与常见报错处置
+- `scripts/_gen_fitcheck.py`：按 `.qsf` 生成临时工程，**不动仓库**地验证任一顶层能否编译
+
+**Changed**
+- ⭐ **`puzzle_ctrl` 的实现方式（面积换时间）**：4 路并行 `place()` 平移 + 掩码求交
+  → **行扫描引擎**（4 块 × 8 行 = 32 拍刷一帧）+ **包围盒不相交判据**。
+  整机 LE 从 **3461 降到 1226**（见 `ERRORS.md` ERR-0026）
+- ⭐ **三处打拍修时序**：判定独立成一拍 + `o_pattern_sel` 寄存 + 图案参数寄存副本/判据寄存
+  → Fmax 从 **38.4MHz 提升到 63.66MHz**（见 `ERRORS.md` ERR-0027）
+- `clk_gen` 的上电复位改为数 `tick_1k`（19 位 → 4 位计数器），`puzzle_pkg` 相应把
+  `CNT_POR` 换成 `T_POR_MS`
+- `game_fsm`：`o_pattern_sel` 改为寄存输出；方向键连发到期后**重新装载** `REPEAT_PERIOD`
+  （原写法清零后判据 `= 1` 永不再成立，连发只会出一次）
+
+**Fixed**
+- 修掉 4 处"看着合法、编译不过"的写法：`"000" & i_level` 类型不明确（`disp_format`）、
+  1 位 `std_logic` 直接转 `unsigned`、`r_free` 用 `std_logic_vector` 却要 `+1`、
+  `r_repeat_cnt` 被两个进程写（多重驱动）
+- 修掉 `board_test_top` 编译时的两处未使用信号告警来源（保留端口连接、改用 `tick_100` 计时）
+
+**验证结果（Quartus II 9.1 Build 222，EPM1270T144C5）**
+
+| 顶层 | LE | 引脚 | Fmax | 结论 |
+|---|---|---|---|---|
+| `board_test_top` | 439 / 1270（35%） | 68 / 116 | — | 全流程编译通过 |
+| `puzzle_top` | 1226 / 1270（97%） | 52 / 116 | **63.66 MHz** | 全流程编译通过、时序收敛 |
+
+**Docs**
+- `ERRORS.md` 新增 ERR-0026（放不进器件）/ ERR-0027（时序不收敛），两条都按九字段写，
+  定位过程保留三次迭代的实测 Fmax 数值
+
+---
