@@ -960,8 +960,11 @@
 ### 2026-09-23 · 第 19 次会话 · 阶段 2/3/4 编码全部完成，整机编译通过并收敛时序
 
 **Added**
-- ⭐ **`report/图/DWG-01-白板版-含信号传递关系.png`**（**交作业用这一版**）：按用户要求
-  **完全保留原白板图的版式**，只用 `PIL` 在原有连线旁叠加 **26 处小字信号名**
+- ⭐ **`report/图/DWG-01-系统总体框图-含信号传递关系-定稿版.png`**（4034×2054）——
+  **用户自己在白板工具里重画的定稿版**，已按老师要求标出主要信号名，**这是权威版本**。
+  逐条核对 `docs/01` §2.1 后，尚缺 4 处建议补：`key_code[4:0]`、
+  `sel · conf · dir[3:0]`、`all_locked · solved`、`sound_sel · sound_trig`（详见 `CLAUDE.md` §12.1.1）
+- ⭐ **`report/图/DWG-01-白板版-含信号传递关系.png`**：在上一版白板图上用 `PIL` 叠加 **26 处小字信号名**
   （`sw7` · `btn` · `kp_row/kp_col[3:0]` · `key_code[4:0]/key_press` · `round_start · sel · conf · dir[3:0]` ·
   `all_locked · solved` · `pattern_sel · seed · seed_load` · `state · level · game_cnt_bcd · blink` ·
   `rnd_step` · `target_mask/rel_mask/height/width` · `px_red/px_green[63:0]` · `pattern_mask[63:0]` ·
