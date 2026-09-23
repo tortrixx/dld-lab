@@ -968,7 +968,7 @@ end architecture;
 
 | 版本 | 文件 | 特点 |
 |---|---|---|
-| **① 定稿版（交作业/报告就用它）** ⭐ | **`report/图/DWG-01-系统总体框图-含信号传递关系-定稿版.png`**（4034×2054） | **用户自己在白板里画的**，已按老师要求标出主要信号名。**这是权威版本**，后续以它为准 |
+| **① 定稿版（交作业/报告就用它）** ⭐ | **`report/图/DWG-01-系统总体框图-含信号传递关系-定稿版.png`**（4034×2054，RGB） | **用户自己在白板里画的**，已按老师要求标出主要信号名。**这是权威版本**，后续以它为准。⚠️ 图上另有 4 处信号名（`key_code[4:0]` · `sel · conf`/`dir[3:0]` · `all_locked`/`· solved` · `sound_sel · sound_trig`）是**用 `scripts/annotate_dwg01_final.py` 叠上去的**（重跑即恢复）；用户白板原始导出另存 `report/图/DWG-01-系统总体框图-定稿版-白板原始导出.png` |
 | ② 原图加注版 | `report/图/DWG-01-白板版-含信号传递关系.png`<br>`scripts/annotate_dwg01.py` | 在我给的上一版白板图上用 `PIL` 叠 26 处小字信号名（不改原内容） |
 | ③ 矢量重绘版 | `report/图/DWG-01-信号传递关系.svg/.png`<br>`scripts/gen_dwg01.py` | 重排版式（框内三行：子系统/实体/功能）+ 节拍总线说明框；可导入 draw.io 编辑 |
 
@@ -976,10 +976,18 @@ end architecture;
 > `kp_row/kp_col` · `key_press` · `round_start` · `state · level` · `seed` · `rnd_step` ·
 > `target_mask[63:0] · rel_mask` · `px_red/px_green[63:0]` · `pattern_mask[63:0]` ·
 > `seg/cat[7:0] · dot_row · dot_colr · dot_colg` · `buzz` · `rst + tick_8k/1k/100/2hz/1hz` ·
-> `tick_1k`。**尚缺 4 处**（老师要的是"主要信号"，建议补上，白板里加 4 个文本框即可）：
-> `key_code[4:0]`（键盘输入→游戏控制）· `sel · conf · dir[3:0]`（游戏控制→拼图核心）·
-> `all_locked · solved`（反馈那条线）· `sound_sel · sound_trig`（游戏控制→音效输出）。
-> 补完即与 §2.1 的主要信号**全部对齐**。
+> `tick_1k`；另有 4 处（`key_code[4:0]` · `sel · conf` / `dir[3:0]` · `all_locked · solved` ·
+> `sound_sel · sound_trig`）**已由 `scripts/annotate_dwg01_final.py` 叠加补全**（见上表 ① 行）
+> —— 至此与 §2.1 的主要信号**全部对齐**。
+>
+> ⭐ **这张图已经嵌进两份交付物**（2026-09-23）：
+> · `report/初步设计方案.pdf` 第 4 页 **图 2-1**（Typst 源 `report/typst/main.typ` 已指向它，
+>   题注改为"系统总体框图（第一层：7 个功能子系统，含模块功能与模块间信号传递关系）"）；
+> · `report/初步设计方案.docx` 的 `word/media/image1.png`（同时按新图宽高比 1.964 重算了
+>   显示尺寸 13.97×7.11 cm，避免被拉伸）。
+> ⚠️ 旧的 `report/图/图2-1-系统总体框图（第一层·功能子系统）.png` **已不再被引用**（留档）。
+> ⚠️ 改这张图之后要**两处都重出**：Typst 编译 PDF（见 `CLAUDE.md` §5.4）＋
+> 替换 docx 里的 `image1.png` 并同步 extent（可参照本次做法：只替换 zip 里两个条目）。
 
 > ⚠️ **原图加注版的位置是"量出来"的，不是估的**：先用纯 PIL 扫暗像素找长横/长竖线
 > （`.tmp/detect_lines.py`），再按 1080 宽预览图 ↔ 3822 宽原图的缩放比 3.538 换算框位。
