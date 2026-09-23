@@ -960,6 +960,11 @@
 ### 2026-09-23 · 第 19 次会话 · 阶段 2/3/4 编码全部完成，整机编译通过并收敛时序
 
 **Added**
+- ⭐ **`report/图/DWG-01-信号传递关系.svg` + `.png`**：按老师要求重画的**对外提交版总体框图** ——
+  7 个功能子系统的框内逐条写明"子系统名 / 实体 / 功能"，**每条连线标注信号名**
+  （与 `docs/01` §2.1 连线表逐条对应：4 条系统级 + 14 条子系统出线 = 18 条），
+  另加"节拍与复位总线"说明框（列出每档 tick 的接收者，以及 S4/S5 不接节拍只收 rst）
+  与图例/注释；新增生成脚本 `scripts/gen_dwg01.py`（改完重跑即可，避免图与表漂移）
 - `rtl/` 下 **14 个文件全部写出**（此前为空）：`puzzle_pkg` · `clk_gen` · `keypad_scan` ·
   `seg_scan` · `dot_matrix_scan` · `pattern_rom` · `piece_rom` · `rng_lfsr` · `puzzle_ctrl` ·
   `disp_format` · `game_fsm` · `buzzer_ctrl` · `puzzle_top` · `board_test_top`
