@@ -114,11 +114,14 @@ puts "============================================================"
 #    本段负责把结果**打印出来**，便于回填 docs/04 §5.2 的 Fmax 一行。
 #
 #    判据：**Fmax ≥ 50MHz** 才算达标。不达标时的第一嫌疑见 puzzle.sdc 末尾的注释。
+#    ⭐ 2026-09-24 修正候选顺序：**优先 `.sta.rpt`（TimeQuest）**——它读 `.sdc` 约束、
+#    报告带 Slack 合格判定（见 docs/06 §3.3.1）；经典 `.tan.rpt` 不读约束，
+#    只有 Fmax 数值没有余量，降为回退（与 docs/06 §3.2.1 命令行指引的口径一致）。
 set timing_candidates [list \
-    [file join $PROJ_DIR "output_files" "$PROJ_NAME.tan.rpt"] \
-    [file join $PROJ_DIR "$PROJ_NAME.tan.rpt"] \
     [file join $PROJ_DIR "output_files" "$PROJ_NAME.sta.rpt"] \
     [file join $PROJ_DIR "$PROJ_NAME.sta.rpt"] \
+    [file join $PROJ_DIR "output_files" "$PROJ_NAME.tan.rpt"] \
+    [file join $PROJ_DIR "$PROJ_NAME.tan.rpt"] \
 ]
 
 puts ""
@@ -152,7 +155,7 @@ foreach tf $timing_candidates {
 }
 if {!$found} {
     puts " 未找到时序报告（可能只跑了综合，或编译失败）"
-    puts " 若确实做了全流程编译却仍找不到，请手工查看 quartus/ 下的 *.tan.rpt"
+    puts " 若确实做了全流程编译却仍找不到，请手工查看 quartus/ 下的 *.sta.rpt（TimeQuest）"
 }
 puts "============================================================"
 puts " ⚠️ 判据：Fmax ≥ 50MHz。不达标时先查最长组合路径"

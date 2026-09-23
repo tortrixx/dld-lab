@@ -117,14 +117,16 @@
 | `docs/02-模块详细设计.md` | 每个模块的内部设计（老师提问主要看这个） |
 | `docs/03-仿真验证方案.md` | 每个模块的激励设计 + 波形判读结论 |
 | `docs/04-引脚分配表.md` | 引脚对照表 + qsf 约束对照 |
-| `docs/05-硬件调试记录.md` | 实验室上板调试记录 |
+| `docs/05-硬件调试记录.md` | 实验室上板调试记录（阶段 5 写） |
+| `docs/06-Quartus编译与烧录流程.md` | **建工程 → 编译 → 引脚分配 → 下载烧录 → 中文乱码处置**（含实测数据；第一次进实验室前读它） |
+| `docs/审查报告-2026-09-18.md` | 进代码前系统性审查的原始记录（**历史档案**，已执行完毕，不再是任务清单） |
 | `docs/报告/实验报告.md` | 正式报告，按 8 个评分项组织 |
 | `docs/图/` | 框图、仿真波形图、编译报告截图 |
-| `rtl/` | VHDL 源码 |
-| `sim/` | `.vwf` 激励文件与仿真输出 |
-| `quartus/` | `.qpf` / `.qsf` 工程与引脚约束 |
-| `scripts/` | TCL 与 Python 自动化脚本 |
-| `report/` | **交付物**：初步设计方案的 `.docx` / `.pdf`、封面方案对比 PDF、`typst/` 排版源、`图/` 插图 |
+| `rtl/` | VHDL 源码（14 个文件：11 实体 + `puzzle_pkg` + 2 顶层） |
+| `sim/` | `.vwf` 激励文件与仿真输出（阶段 3 写；⚠️ `.vwf` 会被仿真回写，别手工编辑） |
+| `quartus/` | `.qpf` / `.qsf` 工程与引脚约束（**引脚号唯一真值源**）；9.1 的编译产物也落在这里 |
+| `scripts/` | TCL 与 Python 自动化脚本（编译驱动 / 校验 / 转码 / 切顶层 / 出图） |
+| `report/` | **交付物**：初步设计方案的 `.docx` / `.pdf`、封面方案对比 PDF、`typst/` 排版源、`图/` 插图（DWG-01 对外提交版在内） |
 
 > 根目录下三份课程 PDF 已在 `.gitignore` 中，**保留在本地作参考，不入库**。
 
@@ -277,26 +279,37 @@ sys_en = SW7 ────────▶ (not sys_en) ────────�
 QUARTUS_BIN = C:\QuartusII91\QuartusII91\quartus\bin
 ```
 
-命令行工具：`quartus_sh` `quartus_map` `quartus_fit` `quartus_asm` `quartus_tan` `quartus_sim` `quartus_pgm`
+命令行工具：`quartus_sh` `quartus_map` `quartus_fit` `quartus_asm` `quartus_tan` `quartus_sta` `quartus_sim` `quartus_pgm`
+
+> ⭐ **完整的分步操作（建工程 → 编译 → 引脚分配 → 下载烧录 → 中文乱码处置）见
+> `docs/06-Quartus编译与烧录流程.md`**；本小节只放高频命令。
 
 ### 5.2 常用命令
 
-```bash
-# 全流程编译（综合→布局布线→汇编）
-quartus_sh --flow compile quartus/puzzle
+> ⚠️ **工程已登记 14 个源文件**（`.qsf` 的 `VHDL_FILE` 表），
+> 所以**不要再用 `--source=<单个文件>`** —— 那是阶段 1 只有 1 个文件时的写法，
+> 现在会漏掉其余 13 个。命令在 **`quartus/` 目录下执行**（或给工程路径）。
 
-# 分步
-quartus_map quartus/puzzle --source=rtl/puzzle_top.vhd
-quartus_fit quartus/puzzle
-quartus_asm quartus/puzzle
-quartus_tan quartus/puzzle          # 时序分析
+```bash
+# 推荐：本仓库的编译驱动（自动打印 LE / Fmax；--top 可临时换顶层，用完还原）
+"C:/QuartusII91/QuartusII91/quartus/bin/quartus_sh.exe" -t scripts/build.tcl
+
+# 全流程编译（综合→布局布线→汇编）
+quartus_sh --flow compile puzzle
+
+# 分步（便于定位是哪一步出错）
+quartus_map puzzle                   # 综合
+quartus_fit puzzle                   # 布局布线（引脚在这一步落实）
+quartus_asm puzzle                   # 汇编 → 生成 .pof
+quartus_sta puzzle                   # TimeQuest 时序（Fmax / 余量；它读 puzzle.sdc）
+quartus_tan puzzle                   # 经典时序分析（不读 .sdc，只有 Fmax 数值、无合格判定）
 
 # 仿真 —— 两个开关缺一不可（见 §5.3 标准流程；2026-09-18 审查 `sim-06` 订正：
 #   旧写法不带开关 → 落到工程默认仿真模式（本项目从未 fit，时序模式跑不起来），
 #   且结果不回写 .vwf，Python 侧比对拿不到任何数据）
-quartus_sim quartus/puzzle --mode=functional --overwrite_waveform=on
+quartus_sim puzzle --mode=functional --overwrite_waveform=on
 
-# 烧录
+# 烧录（9.1 的产物就在 quartus/ 下，没有 output_files/）
 quartus_pgm -c USB-Blaster -m jtag -o "p;quartus/puzzle.pof"
 ```
 
