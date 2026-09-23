@@ -960,7 +960,15 @@
 ### 2026-09-23 · 第 19 次会话 · 阶段 2/3/4 编码全部完成，整机编译通过并收敛时序
 
 **Added**
-- ⭐ **`report/图/DWG-01-信号传递关系.svg` + `.png`**：按老师要求重画的**对外提交版总体框图** ——
+- ⭐ **`report/图/DWG-01-白板版-含信号传递关系.png`**（**交作业用这一版**）：按用户要求
+  **完全保留原白板图的版式**，只用 `PIL` 在原有连线旁叠加 **26 处小字信号名**
+  （`sw7` · `btn` · `kp_row/kp_col[3:0]` · `key_code[4:0]/key_press` · `round_start · sel · conf · dir[3:0]` ·
+  `all_locked · solved` · `pattern_sel · seed · seed_load` · `state · level · game_cnt_bcd · blink` ·
+  `rnd_step` · `target_mask/rel_mask/height/width` · `px_red/px_green[63:0]` · `pattern_mask[63:0]` ·
+  `seg/cat[7:0]` · `dot_row/dot_colr/dot_colg` · `sound_sel · sound_trig` · `buzz` ·
+  `rst + tick_8k/1k/100/2hz/1hz`），白描边、不覆盖原图内容；生成脚本 `scripts/annotate_dwg01.py`
+  （标注位置由**扫描原图暗像素量出**，不是估的；微调改 `L` 表即可）
+- ⭐ **`report/图/DWG-01-信号传递关系.svg` + `.png`**：按老师要求重画的**矢量版总体框图** ——
   7 个功能子系统的框内逐条写明"子系统名 / 实体 / 功能"，**每条连线标注信号名**
   （与 `docs/01` §2.1 连线表逐条对应：4 条系统级 + 14 条子系统出线 = 18 条），
   另加"节拍与复位总线"说明框（列出每档 tick 的接收者，以及 S4/S5 不接节拍只收 rst）
