@@ -15,7 +15,7 @@ set_global_assignment -name DEVICE EPM1270T144C5
 set_global_assignment -name TOP_LEVEL_ENTITY board_test_top
 
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 9.1
-set_global_assignment -name LAST_QUARTUS_VERSION "9.1"
+set_global_assignment -name LAST_QUARTUS_VERSION 9.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "17:30:00  SEPTEMBER 17, 2026"
 
 # VHDL 输入版本固定 1993（见 CLAUDE.md §10.1）
@@ -145,14 +145,14 @@ set_location_assignment PIN_60 -to buzz
 set_location_assignment PIN_61 -to btn
 
 # ---- 16 个 LED (LD0~LD15, 高电平点亮) ----
-set_location_assignment PIN_80  -to ld[0]
-set_location_assignment PIN_79  -to ld[1]
-set_location_assignment PIN_78  -to ld[2]
-set_location_assignment PIN_77  -to ld[3]
-set_location_assignment PIN_76  -to ld[4]
-set_location_assignment PIN_75  -to ld[5]
-set_location_assignment PIN_74  -to ld[6]
-set_location_assignment PIN_73  -to ld[7]
+set_location_assignment PIN_80 -to ld[0]
+set_location_assignment PIN_79 -to ld[1]
+set_location_assignment PIN_78 -to ld[2]
+set_location_assignment PIN_77 -to ld[3]
+set_location_assignment PIN_76 -to ld[4]
+set_location_assignment PIN_75 -to ld[5]
+set_location_assignment PIN_74 -to ld[6]
+set_location_assignment PIN_73 -to ld[7]
 set_location_assignment PIN_144 -to ld[8]
 set_location_assignment PIN_143 -to ld[9]
 set_location_assignment PIN_142 -to ld[10]
