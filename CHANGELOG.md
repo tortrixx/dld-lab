@@ -983,6 +983,12 @@
   （原写法清零后判据 `= 1` 永不再成立，连发只会出一次）
 
 **Fixed**
+- ⭐ **修掉 Quartus 里中文注释乱码**（ERR-0028）：Quartus II 9.1 的编辑器固定按系统
+  ANSI(GBK) 解码源文件（12.0 起才 UTF-8，且 9.1 没有"以指定编码打开"选项），
+  而 `rtl/*.vhd` 是 UTF-8 无 BOM → 中文注释全部乱码（**编译不受影响**）。
+  新增 `scripts/encoding.py`（UTF-8 ⇄ GBK 双向转换，带往返安全校验 / 幂等 / 只碰 `rtl/*.vhd`），
+  `rtl/` 14 个文件转为 **GBK**（替换 91 处 GBK 装不下的装饰符号）；
+  转换后重新编译，两个顶层 **LE 与 Fmax 一字不差**（1226/1270、63.66MHz、439 LE）
 - 修掉 4 处"看着合法、编译不过"的写法：`"000" & i_level` 类型不明确（`disp_format`）、
   1 位 `std_logic` 直接转 `unsigned`、`r_free` 用 `std_logic_vector` 却要 `+1`、
   `r_repeat_cnt` 被两个进程写（多重驱动）

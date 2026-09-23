@@ -412,6 +412,42 @@ python scripts/sim.py check <模块>
 >
 > **不要用 `Select-String` 在这批文档里定位行号。**
 
+#### ⚠️ 源文件编码：`rtl/*.vhd` 是 **GBK**，其余文件是 **UTF-8**（2026-09-23 起）
+
+> **同一个坑的另一半**：**Quartus II 11.0 及以下**（本项目用 **9.1**）的文本编辑器
+> **固定按系统 ANSI（简体中文 = CP936/GBK）解码源文件**，而且**没有"以指定编码打开"
+> 的选项**（那是 Quartus Prime 较新版本才有的 `File → Open with Encoding`）。
+> 于是"UTF-8 无 BOM"的 `.vhd` 里的中文注释会被当成 GBK 双字节解读 → **整段乱码**
+> （现象：代码标识符正常，只有中文注释变成火星文；**编译不受影响**，因为注释只是字节流）。
+> 本机实测：系统 `ACP = 936`（正确，**不要**打开 Windows 的
+> "Beta: 使用 Unicode UTF-8 提供全球语言支持"——那会让 Quartus 反过来读不了 GBK）。
+
+| 文件 | 编码 | 谁在读 |
+|---|---|---|
+| `rtl/*.vhd` | **GBK（CP936）** | **Quartus II 9.1**（答辩要在它里面看代码、报告要截图） |
+| `docs/*.md` · `*.py` · `*.qsf` · `*.tcl` · `*.sdc` | **UTF-8 无 BOM** | Grep / git / Python / AI 工具 |
+
+**一条命令切换**（脚本自带"往返安全校验"，装不下的字符会**拒绝转换并报位置**，绝不静默写 `?`）：
+
+```bash
+python scripts/encoding.py check      # 看当前编码（有没有混用）
+python scripts/encoding.py gbk        # UTF-8 → GBK —— 打开 Quartus 之前跑
+python scripts/encoding.py utf8       # GBK  → UTF-8 —— 用 AI 改代码 / 提交之前跑
+python scripts/encoding.py scan-bad   # 列出 GBK 装不下的字符（新增装饰符号时先跑）
+```
+
+> ⚠️ **AI 工具（Write/Edit）产出的永远是 UTF-8。**
+> 所以**每次用 AI 改完 `rtl/*.vhd`，必须重跑一次 `python scripts/encoding.py gbk`**，
+> 否则在 Quartus 里又会乱码。**这一条要并入收工清单**（`CLAUDE.md` §0 收工时）。
+>
+> ⚠️ Quartus 里同时开着文件时转换编码，它会问"文件已被外部修改"——
+> **选"是/Reload"**（选"保存"会用它自己那份覆盖回去）。
+> 稳妥做法：**先关掉 Quartus 里的该文件（或退出 Quartus）→ 转换 → 再打开**。
+>
+> ⚠️ **装饰符号替换表**（`scripts/encoding.py` 的 `GBK_SUBST`）：GBK 装不下
+> `⚠️` `⭐` `µ` `−` `↔` `⟺` `⑪` `⑫`，分别替换为 `※` `★` `μ` `-` `<->` `当且仅当` `(11)` `(12)`。
+> 只影响注释排版，不改变语义。**新增表外符号时转换会失败并打印码位**，加进表里即可。
+
 ---
 
 ## 6. Commit 规范

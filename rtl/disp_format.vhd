@@ -1,18 +1,18 @@
 -- ============================================================
---  disp_format â€”â€” æ˜¾ç¤ºæ ¼å¼åŒ–ï¼ˆçº¯ç»„åˆï¼‰
---  æ‰€å±å­ç³»ç»Ÿï¼šS6 æ˜¾ç¤ºå­ç³»ç»Ÿï¼ˆDWG-01ï¼‰
---  èŒè´£ï¼šæ˜¾ç¤ºæ€»å…¥å£ï¼šçŠ¶æ€ â†’ 8 ä½ BCD + ç†„ç­æ©ç  + ç‚¹é˜µåƒç´ å¤šè·¯é€‰æ‹©
---  å¯¹åº”éœ€æ±‚ï¼š1ï¼ˆè‡ªæ£€é—ªçƒï¼‰ã€2ï¼ˆå¾…æœºæ˜¾ 5ï¼‰ã€3ï¼ˆå…³å¡å·ï¼‰ã€4ï¼ˆé¢„è§ˆå›¾æ¡ˆï¼‰ã€
---            5ï¼ˆå€’è®¡æ—¶æ˜¾ç¤ºï¼‰ã€9ï¼ˆèƒœè´Ÿå›¾æ¡ˆï¼‰
+--  disp_format ¡ª¡ª ÏÔÊ¾¸ñÊ½»¯£¨´¿×éºÏ£©
+--  ËùÊô×ÓÏµÍ³£ºS6 ÏÔÊ¾×ÓÏµÍ³£¨DWG-01£©
+--  Ö°Ôğ£ºÏÔÊ¾×ÜÈë¿Ú£º×´Ì¬ ¡ú 8 Î» BCD + Ï¨ÃğÑÚÂë + µãÕóÏñËØ¶àÂ·Ñ¡Ôñ
+--  ¶ÔÓ¦ĞèÇó£º1£¨×Ô¼ìÉÁË¸£©¡¢2£¨´ı»úÏÔ 5£©¡¢3£¨¹Ø¿¨ºÅ£©¡¢4£¨Ô¤ÀÀÍ¼°¸£©¡¢
+--            5£¨µ¹¼ÆÊ±ÏÔÊ¾£©¡¢9£¨Ê¤¸ºÍ¼°¸£©
 --
---  ã€è®¾è®¡è¦ç‚¹ã€‘
---   â‘  çº¯ç»„åˆï¼Œæ— æ—¶é’Ÿï¼šç»™è¾“å…¥ç«‹åˆ»å‡ºè¾“å‡ºï¼Œæœ€å®¹æ˜“ä»¿çœŸï¼ˆå¯ 100% è¦†ç›–ï¼‰ã€‚
---   â‘¡ ç‚¹é˜µè¿™ä¸€è·¯æ˜¯æœ¬æ¨¡å—çš„**å¤šè·¯é€‰æ‹©ç‚¹**ï¼šè‡ªæ£€å…¨é»„é—ªçƒã€é¢„è§ˆå®Œæ•´å›¾æ¡ˆã€
---      æ¸¸æˆä¸­çš„é›¶ç‰‡åƒç´ ã€èƒœè´Ÿå›¾æ¡ˆ â€”â€” å››è€…åœ¨æ­¤æŒ‰çŠ¶æ€é€‰ä¸€è·¯ã€‚
---      å°‘äº†å®ƒï¼Œé¢„è§ˆä¸è‡ªæ£€ç”»é¢å…¨é¡¹ç›®æ²¡æœ‰æ¨¡å—èƒ½äº§ç”Ÿï¼ˆdocs/01 Â§5.9ï¼‰ã€‚
---   â‘¢ å€’è®¡æ—¶ç”¨ BCDï¼ši_game_cnt_bcd çš„ (7..4) ç›´æ¥å°±æ˜¯åä½ã€(3..0) å°±æ˜¯ä¸ªä½ï¼Œ
---      **ä¸åšä»»ä½• /10 mod10 è¿ç®—** â†’ ä¸ç»¼åˆå‡ºé™¤æ³•å™¨ï¼ˆdocs/02 Â§11.4ï¼‰ã€‚
---   â‘£ æ‰€æœ‰è¾“å‡ºåœ¨ä»»ä½•çŠ¶æ€ä¸‹éƒ½è¢«èµ‹å€¼ï¼ˆå¼€å¤´ç»™é»˜è®¤å€¼ï¼‰â†’ ä¸ä¼šäº§ç”Ÿ latchã€‚
+--  ¡¾Éè¼ÆÒªµã¡¿
+--   ¢Ù ´¿×éºÏ£¬ÎŞÊ±ÖÓ£º¸øÊäÈëÁ¢¿Ì³öÊä³ö£¬×îÈİÒ×·ÂÕæ£¨¿É 100% ¸²¸Ç£©¡£
+--   ¢Ú µãÕóÕâÒ»Â·ÊÇ±¾Ä£¿éµÄ**¶àÂ·Ñ¡Ôñµã**£º×Ô¼ìÈ«»ÆÉÁË¸¡¢Ô¤ÀÀÍêÕûÍ¼°¸¡¢
+--      ÓÎÏ·ÖĞµÄÁãÆ¬ÏñËØ¡¢Ê¤¸ºÍ¼°¸ ¡ª¡ª ËÄÕßÔÚ´Ë°´×´Ì¬Ñ¡Ò»Â·¡£
+--      ÉÙÁËËü£¬Ô¤ÀÀÓë×Ô¼ì»­ÃæÈ«ÏîÄ¿Ã»ÓĞÄ£¿éÄÜ²úÉú£¨docs/01 ¡ì5.9£©¡£
+--   ¢Û µ¹¼ÆÊ±ÓÃ BCD£ºi_game_cnt_bcd µÄ (7..4) Ö±½Ó¾ÍÊÇÊ®Î»¡¢(3..0) ¾ÍÊÇ¸öÎ»£¬
+--      **²»×öÈÎºÎ /10 mod10 ÔËËã** ¡ú ²»×ÛºÏ³ö³ı·¨Æ÷£¨docs/02 ¡ì11.4£©¡£
+--   ¢Ü ËùÓĞÊä³öÔÚÈÎºÎ×´Ì¬ÏÂ¶¼±»¸³Öµ£¨¿ªÍ·¸øÄ¬ÈÏÖµ£©¡ú ²»»á²úÉú latch¡£
 -- ============================================================
 
 library IEEE;
@@ -22,17 +22,17 @@ use work.puzzle_pkg.ALL;
 
 entity disp_format is
     port (
-        i_state        : in  std_logic_vector(2 downto 0);   -- å½“å‰çŠ¶æ€
-        i_level        : in  std_logic;                      -- å…³å¡ï¼ˆ0 = ç¬¬ä¸€å…³ï¼‰
-        i_preview_cnt  : in  std_logic_vector(2 downto 0);   -- é¢„è§ˆå€’è®¡æ—¶å€¼
-        i_game_cnt_bcd : in  std_logic_vector(7 downto 0);   -- æ‹¼å›¾å€’è®¡æ—¶ï¼ˆBCDï¼‰
-        i_blink        : in  std_logic;                      -- 2Hz æ–¹æ³¢ï¼Œè‡ªæ£€é—ªçƒç”¨
-        i_pattern_mask : in  std_logic_vector(63 downto 0);  -- å›¾æ¡ˆæ©ç ï¼ˆé¢„è§ˆ / èƒœè´Ÿï¼‰
-        i_px_red       : in  std_logic_vector(63 downto 0);  -- æ¥è‡ª puzzle_ctrl çš„é›¶ç‰‡åƒç´ 
+        i_state        : in  std_logic_vector(2 downto 0);   -- µ±Ç°×´Ì¬
+        i_level        : in  std_logic;                      -- ¹Ø¿¨£¨0 = µÚÒ»¹Ø£©
+        i_preview_cnt  : in  std_logic_vector(2 downto 0);   -- Ô¤ÀÀµ¹¼ÆÊ±Öµ
+        i_game_cnt_bcd : in  std_logic_vector(7 downto 0);   -- Æ´Í¼µ¹¼ÆÊ±£¨BCD£©
+        i_blink        : in  std_logic;                      -- 2Hz ·½²¨£¬×Ô¼ìÉÁË¸ÓÃ
+        i_pattern_mask : in  std_logic_vector(63 downto 0);  -- Í¼°¸ÑÚÂë£¨Ô¤ÀÀ / Ê¤¸º£©
+        i_px_red       : in  std_logic_vector(63 downto 0);  -- À´×Ô puzzle_ctrl µÄÁãÆ¬ÏñËØ
         i_px_green     : in  std_logic_vector(63 downto 0);
-        o_disp_val     : out std_logic_vector(31 downto 0);  -- 8 ä½ BCD
-        o_blank        : out std_logic_vector(7 downto 0);   -- ç†„ç­æ©ç ï¼ˆ1 = ç­ï¼‰
-        o_px_red       : out std_logic_vector(63 downto 0);  -- æœ€ç»ˆä¸Šç‚¹é˜µçš„çº¢ / ç»¿åƒç´ 
+        o_disp_val     : out std_logic_vector(31 downto 0);  -- 8 Î» BCD
+        o_blank        : out std_logic_vector(7 downto 0);   -- Ï¨ÃğÑÚÂë£¨1 = Ãğ£©
+        o_px_red       : out std_logic_vector(63 downto 0);  -- ×îÖÕÉÏµãÕóµÄºì / ÂÌÏñËØ
         o_px_green     : out std_logic_vector(63 downto 0)
     );
 end entity disp_format;
@@ -41,41 +41,41 @@ architecture rtl of disp_format is
 begin
 
     -- ============================================================
-    -- ç‚¹é˜µå†…å®¹é€‰æ‹©ï¼ˆçº¯ç»„åˆï¼Œä¸ä¸‹é¢çš„æ•°ç ç®¡æ˜ å°„åŒä¸€ä¸ªçŠ¶æ€ç»´åº¦ï¼‰
+    -- µãÕóÄÚÈİÑ¡Ôñ£¨´¿×éºÏ£¬ÓëÏÂÃæµÄÊıÂë¹ÜÓ³ÉäÍ¬Ò»¸ö×´Ì¬Î¬¶È£©
     -- ============================================================
     process (i_state, i_blink, i_pattern_mask, i_px_red, i_px_green)
     begin
         case i_state is
-            when S_SELF_TEST =>                       -- è‡ªæ£€ï¼šå…¨é»„ï¼Œ2Hz é€šæ–­
-                o_px_red   <= (others => i_blink);    -- â˜… 64 ä½å…¨ç­‰äº i_blink
-                o_px_green <= (others => i_blink);    --   çº¢+ç»¿åŒäº® = é»„
-            when S_IDLE =>                            -- å¾…æœºï¼šå…¨ç­
+            when S_SELF_TEST =>                       -- ×Ô¼ì£ºÈ«»Æ£¬2Hz Í¨¶Ï
+                o_px_red   <= (others => i_blink);    -- ¡ï 64 Î»È«µÈÓÚ i_blink
+                o_px_green <= (others => i_blink);    --   ºì+ÂÌÍ¬ÁÁ = »Æ
+            when S_IDLE =>                            -- ´ı»ú£ºÈ«Ãğ
                 o_px_red   <= (others => '0');
                 o_px_green <= (others => '0');
-            when S_PREVIEW =>                         -- é¢„è§ˆï¼šå®Œæ•´ç›®æ ‡å›¾æ¡ˆï¼ˆçº¢ï¼‰
+            when S_PREVIEW =>                         -- Ô¤ÀÀ£ºÍêÕûÄ¿±êÍ¼°¸£¨ºì£©
                 o_px_red   <= i_pattern_mask;
                 o_px_green <= (others => '0');
-            when S_PLAYING =>                         -- æ¸¸æˆä¸­ï¼šé€ä¼ é›¶ç‰‡åƒç´ 
+            when S_PLAYING =>                         -- ÓÎÏ·ÖĞ£ºÍ¸´«ÁãÆ¬ÏñËØ
                 o_px_red   <= i_px_red;
                 o_px_green <= i_px_green;
-            when others =>                            -- S_WIN / S_FAILï¼šèƒœè´Ÿå›¾æ¡ˆï¼ˆçº¢ï¼‰
+            when others =>                            -- S_WIN / S_FAIL£ºÊ¤¸ºÍ¼°¸£¨ºì£©
                 o_px_red   <= i_pattern_mask;
                 o_px_green <= (others => '0');
         end case;
     end process;
 
     -- ============================================================
-    -- æ•°ç ç®¡å†…å®¹é€‰æ‹©ï¼ˆä¸ç‚¹é˜µåŒä¸€ä¸ªçŠ¶æ€ç»´åº¦ï¼‰
-    --   æ˜¾ç¤ºåˆ†å·¥ï¼šDISP7 = é¢„è§ˆå€’è®¡æ—¶ï¼ˆå¾…æœºæ—¶å›ºå®šæ˜¾ 5ï¼‰
-    --             DISP4/DISP3 = æ‹¼å›¾å€’è®¡æ—¶ä¸¤ä½åè¿›åˆ¶
-    --             DISP0 = å…³å¡å·
+    -- ÊıÂë¹ÜÄÚÈİÑ¡Ôñ£¨ÓëµãÕóÍ¬Ò»¸ö×´Ì¬Î¬¶È£©
+    --   ÏÔÊ¾·Ö¹¤£ºDISP7 = Ô¤ÀÀµ¹¼ÆÊ±£¨´ı»úÊ±¹Ì¶¨ÏÔ 5£©
+    --             DISP4/DISP3 = Æ´Í¼µ¹¼ÆÊ±Á½Î»Ê®½øÖÆ
+    --             DISP0 = ¹Ø¿¨ºÅ
     -- ============================================================
     process (i_state, i_level, i_preview_cnt, i_game_cnt_bcd, i_blink)
-        variable v_lvl : integer range 1 to 2;       -- å…³å¡å·çš„æ˜¾ç¤ºå€¼ï¼ˆlevel 0/1 â†’ 1/2ï¼‰
+        variable v_lvl : integer range 1 to 2;       -- ¹Ø¿¨ºÅµÄÏÔÊ¾Öµ£¨level 0/1 ¡ú 1/2£©
     begin
-        -- â˜… i_level æ˜¯ 0/1ï¼Œæ˜¾ç¤ºå…³å¡å·å¿…é¡» +1ï¼›ç”¨ if ç›´æ¥æ˜ å°„ï¼ˆä¸å†™æˆ
-        --   "000" & i_level è¿™ç§**ç±»å‹ä¸æ˜ç¡®**çš„æ‹¼æ¥ï¼ŒQuartus ä¼šæŠ¥
-        --   "can't determine definition of operator &"ï¼‰ã€‚
+        -- ¡ï i_level ÊÇ 0/1£¬ÏÔÊ¾¹Ø¿¨ºÅ±ØĞë +1£»ÓÃ if Ö±½ÓÓ³Éä£¨²»Ğ´³É
+        --   "000" & i_level ÕâÖÖ**ÀàĞÍ²»Ã÷È·**µÄÆ´½Ó£¬Quartus »á±¨
+        --   "can't determine definition of operator &"£©¡£
         if i_level = '0' then
             v_lvl := 1;
         else
@@ -83,33 +83,33 @@ begin
         end if;
 
         o_disp_val <= (others => '0');
-        o_blank    <= (others => '1');               -- é»˜è®¤ï¼š8 ä½å…¨ç­
+        o_blank    <= (others => '1');               -- Ä¬ÈÏ£º8 Î»È«Ãğ
         case i_state is
             when S_SELF_TEST =>
-                o_disp_val <= x"88888888";           -- 8 ä½å…¨ "8"
-                o_blank    <= (others => not i_blink);  -- â˜… ä¸ç‚¹é˜µåŒç›¸ï¼šblink=1 äº®ã€=0 ç­
+                o_disp_val <= x"88888888";           -- 8 Î»È« "8"
+                o_blank    <= (others => not i_blink);  -- ¡ï ÓëµãÕóÍ¬Ïà£ºblink=1 ÁÁ¡¢=0 Ãğ
             when S_IDLE =>
-                o_disp_val(31 downto 28) <= x"5";    -- DISP7 = 5ï¼ˆè¦æ±‚ 2ï¼‰
+                o_disp_val(31 downto 28) <= x"5";    -- DISP7 = 5£¨ÒªÇó 2£©
                 o_blank(7) <= '0';
                 o_disp_val(3 downto 0) <= std_logic_vector(to_unsigned(v_lvl, 4));
-                o_blank(0) <= '0';                   -- DISP0 = å…³å¡å·ï¼ˆè¦æ±‚ 3ï¼‰
+                o_blank(0) <= '0';                   -- DISP0 = ¹Ø¿¨ºÅ£¨ÒªÇó 3£©
             when S_PREVIEW =>
-                o_disp_val(31 downto 28) <= '0' & i_preview_cnt;  -- â˜… 3 ä½é›¶æ‰©å±•åˆ° 4 ä½
+                o_disp_val(31 downto 28) <= '0' & i_preview_cnt;  -- ¡ï 3 Î»ÁãÀ©Õ¹µ½ 4 Î»
                 o_blank(7) <= '0';
                 o_disp_val(3 downto 0) <= std_logic_vector(to_unsigned(v_lvl, 4));
                 o_blank(0) <= '0';
             when S_PLAYING =>
-                o_disp_val(19 downto 16) <= i_game_cnt_bcd(7 downto 4);   -- DISP4 = åä½
-                o_disp_val(15 downto 12) <= i_game_cnt_bcd(3 downto 0);   -- DISP3 = ä¸ªä½
+                o_disp_val(19 downto 16) <= i_game_cnt_bcd(7 downto 4);   -- DISP4 = Ê®Î»
+                o_disp_val(15 downto 12) <= i_game_cnt_bcd(3 downto 0);   -- DISP3 = ¸öÎ»
                 if i_game_cnt_bcd(7 downto 4) = "0000" then
-                    o_blank(4) <= '1';               -- â˜… å‰å¯¼é›¶ç†„ç­ï¼ˆ0x09 æ˜¾ç¤º "9" è€Œä¸æ˜¯ "09"ï¼‰
+                    o_blank(4) <= '1';               -- ¡ï Ç°µ¼ÁãÏ¨Ãğ£¨0x09 ÏÔÊ¾ "9" ¶ø²»ÊÇ "09"£©
                 else
                     o_blank(4) <= '0';
                 end if;
-                o_blank(3) <= '0';                   -- ä¸ªä½æ’äº®ï¼ˆ"30" çš„ 0 æ˜¯æœ‰æ•ˆæ•°å­—ï¼‰
+                o_blank(3) <= '0';                   -- ¸öÎ»ºãÁÁ£¨"30" µÄ 0 ÊÇÓĞĞ§Êı×Ö£©
                 o_disp_val(3 downto 0) <= std_logic_vector(to_unsigned(v_lvl, 4));
                 o_blank(0) <= '0';
-            when others =>                           -- S_WIN / S_FAILï¼šåªä¿ç•™å…³å¡å·
+            when others =>                           -- S_WIN / S_FAIL£ºÖ»±£Áô¹Ø¿¨ºÅ
                 o_disp_val(3 downto 0) <= std_logic_vector(to_unsigned(v_lvl, 4));
                 o_blank(0) <= '0';
         end case;
