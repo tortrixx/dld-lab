@@ -27,6 +27,7 @@ greybox_tmp/
 *.ttf
 *.hexout
 *.done
+*.dpf
 *.eqn
 *.vqm
 *.vo

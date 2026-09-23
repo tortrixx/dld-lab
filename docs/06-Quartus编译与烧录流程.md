@@ -171,6 +171,11 @@ quartus_sta puzzle     # TimeQuest 时序分析（Fmax，本工程用这个读�
 > （`RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND`、`LL_ROOT_REGION`、`LL_MEMBER_STATE`），
 > 并把文件末尾的换行去掉。**这是正常现象**，不是配置被改坏了。
 > 想做提交就把这几行一起提交，不必手工回退（回退了下一次编译又会加上）。
+>
+> ⚠️ **用 Programmer 下载过一次之后，Quartus 还会追加一行**
+> `set_global_assignment -name MISC_FILE "<本机绝对路径>/puzzle.dpf"` ——
+> 这行**要删掉再提交**：它带本机用户名与绝对路径（与 `ERRORS.md` ERR-0025 同类，
+> 对别人零价值）。`*.dpf` 本身是 Programmer 生成的中间文件，已在 `.gitignore` 里忽略。
 
 > 📌 **本工程实测（2026-09-23 用户本机编译）**：
 > `board_test_top` → `Total logic elements : 439 / 1,270 ( 35 % )`、`Total pins : 68 / 116`，
