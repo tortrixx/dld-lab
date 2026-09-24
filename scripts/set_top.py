@@ -32,8 +32,19 @@ if hasattr(sys.stdout, "reconfigure"):
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DEFAULT_QSF = ROOT / "quartus" / "puzzle.qsf"
 
-LD_RE = re.compile(r"^(\s*#\s*)?(set_location_assignment\s+PIN_\d+\s+-to\s+ld\[)")
+LD_RE = re.compile(r"^(\s*#\s*)?(set_location_assignment\s+PIN_\d+\s+-to\s+ld\[\d+\])\s*$")
+# ⚠️ 上面这条正则**必须把整个赋值捕获进 group(2)**（含 `n]`）。
+#    2026-09-24 实测事故（ERRORS.md ERR-0037）：原正则写成
+#        r"...-to\s+ld\["           ← 到 `ld[` 就结束
+#    而写回时用 `ln = body`（body = group(2) = 只到 `ld[` 的那一段）当整行，
+#    于是**每切一次顶层，那 16 行的 `0]`…`15]` 就被吃掉一次**，
+#    最终 `.qsf` 里变成 `set_location_assignment PIN_137 -to ld[` —— 引脚真值源被破坏。
+#    `do_check` 的旧判据（数行数）**数不出这种截断**：被截断的行照样能匹配。
+#    → 现在 group(2) 带 `\[\d+\]`，并且 `do_check` 会显式报出**格式不合法的行**。
 TOP_RE = re.compile(r"^(set_global_assignment\s+-name\s+TOP_LEVEL_ENTITY\s+)(\S+)\s*$")
+
+# 用来判"这一行的 ld 赋值是不是完整的"（有 `n]` 结尾）
+LD_WELLFORMED_RE = re.compile(r"-to\s+ld\[\d+\]$")
 
 
 def read_qsf(path: pathlib.Path):
@@ -54,17 +65,39 @@ def current(lines):
     return top, n_ld, n_ld_on
 
 
+def malformed_ld(lines):
+    """列出**被截断的** ld 赋值行（缺 `n]` 结尾）—— 数行数是数不出这种损坏的。"""
+    bad = []
+    for i, ln in enumerate(lines, 1):
+        body = ln[2:] if ln.lstrip().startswith("#") else ln
+        if "set_location_assignment" in body and "-to ld[" in body:
+            if not LD_WELLFORMED_RE.search(body.rstrip()):
+                bad.append((i, ln.rstrip()))
+    return bad
+
+
 def do_check(lines) -> int:
     top, n_ld, n_ld_on = current(lines)
     print(f"  当前顶层 TOP_LEVEL_ENTITY = {top}")
     print(f"  ld 引脚约束：共 {n_ld} 行，其中 {n_ld_on} 行生效、{n_ld - n_ld_on} 行已注释")
+    bad = malformed_ld(lines)
+    if bad:
+        print("  ✗ **ld 赋值行被截断**（缺 `n]` 结尾）—— 引脚真值源已损坏！")
+        for i, ln in bad:
+            print(f"      第 {i} 行: {ln}")
+        print("  → 修法：按 docs/04 §2 的引脚表补回 `ld[0]`…`ld[15]`，再跑 scripts/check_pins.py 复核。")
+        print("  → 根因见 ERRORS.md ERR-0037（set_top.py 旧正则只捕获到 `ld[`）。")
+        return 1
+    if n_ld and n_ld != 16:
+        print(f"  ✗ ld 约束行数不是 16（实际 {n_ld}）—— 有行丢失了！")
+        return 1
     if top == "puzzle_top" and n_ld_on:
         print("  ✗ 顶层是 puzzle_top，但 ld 约束还生效 —— 编译会在 fitter 阶段报错！")
         return 1
     if top == "board_test_top" and n_ld_on != n_ld:
         print("  ✗ 顶层是 board_test_top，但 ld 约束被注释了 —— 16 个 LED 不会有引脚！")
         return 1
-    print("  ✓ 两者一致")
+    print("  ✓ 两者一致，且 16 行 ld 赋值格式完整")
     return 0
 
 

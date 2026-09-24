@@ -1,0 +1,97 @@
+<svg viewBox='0 0 680 150' width='100%' xmlns='http://www.w3.org/2000/svg'>
+<title>dot_matrix_scan 功能仿真波形</title>
+<rect width='680' height='150' fill='none'/>
+<text x='8' y='45' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>i_px_red</text>
+<line x1='150' y1='52' x2='660' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 40 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='36' x2='150.0' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<text x='8' y='67' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>i_px_green</text>
+<line x1='150' y1='74' x2='660' y2='74' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 62 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='58' x2='150.0' y2='74' stroke='#5F5E5A' stroke-width='0.5'/>
+<text x='8' y='89' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>o_dot_row</text>
+<line x1='150' y1='96' x2='660' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 84 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='80' x2='150.0' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='152.6' y1='80' x2='152.6' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='172.9' y1='80' x2='172.9' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='183.2' y1='80' x2='183.2' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='193.3' y1='80' x2='193.3' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='203.6' y1='80' x2='203.6' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='213.8' y1='80' x2='213.8' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='223.9' y1='80' x2='223.9' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='234.2' y1='80' x2='234.2' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='244.3' y1='80' x2='244.3' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='254.6' y1='80' x2='254.6' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='264.8' y1='80' x2='264.8' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='274.9' y1='80' x2='274.9' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='285.1' y1='80' x2='285.1' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='295.4' y1='80' x2='295.4' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='305.5' y1='80' x2='305.5' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='315.8' y1='80' x2='315.8' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='325.9' y1='80' x2='325.9' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='336.1' y1='80' x2='336.1' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='346.4' y1='80' x2='346.4' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='356.6' y1='80' x2='356.6' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='366.8' y1='80' x2='366.8' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='377.0' y1='80' x2='377.0' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='387.1' y1='80' x2='387.1' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='397.4' y1='80' x2='397.4' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='407.6' y1='80' x2='407.6' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='417.8' y1='80' x2='417.8' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='428.0' y1='80' x2='428.0' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='438.1' y1='80' x2='438.1' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='448.3' y1='80' x2='448.3' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='458.6' y1='80' x2='458.6' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='468.8' y1='80' x2='468.8' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='478.9' y1='80' x2='478.9' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='489.2' y1='80' x2='489.2' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='499.4' y1='80' x2='499.4' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='509.5' y1='80' x2='509.5' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='519.8' y1='80' x2='519.8' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='530.0' y1='80' x2='530.0' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='540.2' y1='80' x2='540.2' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='550.4' y1='80' x2='550.4' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='560.5' y1='80' x2='560.5' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='570.8' y1='80' x2='570.8' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='581.0' y1='80' x2='581.0' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='591.1' y1='80' x2='591.1' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='601.4' y1='80' x2='601.4' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='611.5' y1='80' x2='611.5' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='621.8' y1='80' x2='621.8' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='632.0' y1='80' x2='632.0' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='642.1' y1='80' x2='642.1' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='652.3' y1='80' x2='652.3' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<text x='8' y='111' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>o_dot_colr</text>
+<line x1='150' y1='118' x2='660' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 106 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='102' x2='150.0' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='213.8' y1='102' x2='213.8' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='223.9' y1='102' x2='223.9' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='234.2' y1='102' x2='234.2' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='244.3' y1='102' x2='244.3' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='254.6' y1='102' x2='254.6' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='264.8' y1='102' x2='264.8' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='274.9' y1='102' x2='274.9' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='285.1' y1='102' x2='285.1' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='377.0' y1='102' x2='377.0' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='387.1' y1='102' x2='387.1' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='397.4' y1='102' x2='397.4' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='407.6' y1='102' x2='407.6' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='417.8' y1='102' x2='417.8' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='428.0' y1='102' x2='428.0' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='438.1' y1='102' x2='438.1' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='448.3' y1='102' x2='448.3' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='540.2' y1='102' x2='540.2' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='550.4' y1='102' x2='550.4' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='560.5' y1='102' x2='560.5' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='570.8' y1='102' x2='570.8' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='581.0' y1='102' x2='581.0' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='591.1' y1='102' x2='591.1' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='601.4' y1='102' x2='601.4' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='611.5' y1='102' x2='611.5' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<text x='8' y='133' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>o_dot_colg</text>
+<line x1='150' y1='140' x2='660' y2='140' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 128 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='124' x2='150.0' y2='140' stroke='#5F5E5A' stroke-width='0.5'/>
+</svg>

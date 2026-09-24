@@ -362,7 +362,7 @@ python scripts/sim.py check <模块>
 > | 绑定 | 怎么做 |
 > |---|---|
 > | **把被测模块设为顶层** | `quartus_sh -t scripts/build.tcl --top <模块名>`（在第 1 步**之前**做；脚本自带"用完还原"） |
-> | **把本次 `.vwf` 设为向量源** | `set_global_assignment -name VECTOR_SOURCE_FILE sim/<模块>.vwf`（在 `scripts/sim.py` 里做，**同样用完还原**） |
+> | **把本次 `.vwf` 设为向量源** | ⚠️ **2026-09-24 实测订正**：**不是** `.qsf` 里的 `VECTOR_SOURCE_FILE`（Quartus 9.1 不认这个名字，会报 `No valid vector source file specified and default file "puzzle.cvwf" does not exist`），而是 **`quartus_sim` 的命令行选项 `--vector_source=<文件>`**（见 `quartus_sim --help`）。已封装在 `scripts/sim.py` 里 |
 >
 > 两者都**必须在关工程前还原** —— `set_global_assignment` 会写回 `.qsf`。
 > 细则与后果见 `docs/03-仿真验证方案.md` **§2.1**。

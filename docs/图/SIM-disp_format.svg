@@ -1,0 +1,64 @@
+<svg viewBox='0 0 680 216' width='100%' xmlns='http://www.w3.org/2000/svg'>
+<title>disp_format 功能仿真波形</title>
+<rect width='680' height='216' fill='none'/>
+<text x='8' y='45' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>i_state</text>
+<line x1='150' y1='52' x2='660' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 40 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='36' x2='150.0' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='252.0' y1='36' x2='252.0' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='303.0' y1='36' x2='303.0' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='354.0' y1='36' x2='354.0' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='456.0' y1='36' x2='456.0' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='507.0' y1='36' x2='507.0' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='558.0' y1='36' x2='558.0' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<text x='8' y='67' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>i_blink</text>
+<line x1='150' y1='74' x2='660' y2='74' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150.0 72 H201.0 V72 H252.0 V72 H660.0' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<text x='8' y='89' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>i_pattern_mask</text>
+<line x1='150' y1='96' x2='660' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 84 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='80' x2='150.0' y2='96' stroke='#5F5E5A' stroke-width='0.5'/>
+<text x='8' y='111' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>i_game_cnt_bcd</text>
+<line x1='150' y1='118' x2='660' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 106 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='102' x2='150.0' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='405.0' y1='102' x2='405.0' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='456.0' y1='102' x2='456.0' y2='118' stroke='#5F5E5A' stroke-width='0.5'/>
+<text x='8' y='133' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>o_disp_val</text>
+<line x1='150' y1='140' x2='660' y2='140' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 128 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='124' x2='150.0' y2='140' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='252.0' y1='124' x2='252.0' y2='140' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='354.0' y1='124' x2='354.0' y2='140' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='405.0' y1='124' x2='405.0' y2='140' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='456.0' y1='124' x2='456.0' y2='140' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='558.0' y1='124' x2='558.0' y2='140' stroke='#5F5E5A' stroke-width='0.5'/>
+<text x='8' y='155' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>o_blank</text>
+<line x1='150' y1='162' x2='660' y2='162' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 150 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='146' x2='150.0' y2='162' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='201.0' y1='146' x2='201.0' y2='162' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='252.0' y1='146' x2='252.0' y2='162' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='354.0' y1='146' x2='354.0' y2='162' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='405.0' y1='146' x2='405.0' y2='162' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='456.0' y1='146' x2='456.0' y2='162' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='558.0' y1='146' x2='558.0' y2='162' stroke='#5F5E5A' stroke-width='0.5'/>
+<text x='8' y='177' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>o_px_red</text>
+<line x1='150' y1='184' x2='660' y2='184' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 172 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='168' x2='150.0' y2='184' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='201.0' y1='168' x2='201.0' y2='184' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='252.0' y1='168' x2='252.0' y2='184' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='303.0' y1='168' x2='303.0' y2='184' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='354.0' y1='168' x2='354.0' y2='184' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='456.0' y1='168' x2='456.0' y2='184' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='558.0' y1='168' x2='558.0' y2='184' stroke='#5F5E5A' stroke-width='0.5'/>
+<text x='8' y='199' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>o_px_green</text>
+<line x1='150' y1='206' x2='660' y2='206' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 194 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='190' x2='150.0' y2='206' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='201.0' y1='190' x2='201.0' y2='206' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='252.0' y1='190' x2='252.0' y2='206' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='354.0' y1='190' x2='354.0' y2='206' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='456.0' y1='190' x2='456.0' y2='206' stroke='#5F5E5A' stroke-width='0.5'/>
+</svg>
