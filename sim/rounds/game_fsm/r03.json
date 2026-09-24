@@ -1,0 +1,147 @@
+{
+  "module": "game_fsm",
+  "round": 3,
+  "timestamp": "2026-09-24 18:04:22",
+  "duration_ns": 25100.0,
+  "rtl_patches": [],
+  "passed": 27,
+  "total": 27,
+  "all_pass": true,
+  "assertions": [
+    {
+      "name": "§12.9-1 复位→自检→待机",
+      "ok": true,
+      "detail": "11 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-19 o_blink 2Hz 方波",
+      "ok": true,
+      "detail": "1 项探针全部吻合"
+    },
+    {
+      "name": "ERR-0035 幻影开始键踢出自检态",
+      "ok": true,
+      "detail": "4 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-12 任意状态重开全局边",
+      "ok": true,
+      "detail": "14 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-2 待机按开始→预览",
+      "ok": true,
+      "detail": "5 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-17 o_round_start 单周期且时刻",
+      "ok": true,
+      "detail": "2 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-14 音效触发单周期脉冲",
+      "ok": true,
+      "detail": "23 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-3 预览 5 秒倒计时",
+      "ok": true,
+      "detail": "10 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-4/5 BCD 倒计时与不回绕",
+      "ok": true,
+      "detail": "9 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-6 第一关拼对→第二关预览",
+      "ok": true,
+      "detail": "5 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-18 第二关 40 秒",
+      "ok": true,
+      "detail": "5 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-7 第二关拼对→胜利",
+      "ok": true,
+      "detail": "2 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-8 全锁未拼对→失败",
+      "ok": true,
+      "detail": "2 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-11 键号译码",
+      "ok": true,
+      "detail": "75 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-10 方向键连发",
+      "ok": true,
+      "detail": "6 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-15 i_key_press 语义",
+      "ok": true,
+      "detail": "1 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-13 非拼图态方向键无效",
+      "ok": true,
+      "detail": "2 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-16 胜利后立即重开",
+      "ok": true,
+      "detail": "8 项探针全部吻合"
+    },
+    {
+      "name": "§12.9-19 o_blink 是 2Hz 方波（由 tick_100÷25 再翻转，不是 tick_2hz 直通）",
+      "ok": true,
+      "detail": "50 个 tick_100 内 o_blink 翻转 2 次（应 2）；半周期 = 25 个 tick_100（应 25）"
+    },
+    {
+      "name": "§12.9-4/5 BCD 倒计时：0x30 逐拍递减到 0x00，0x10→0x09（借位）→0x08，全程不出现 0x99 回绕",
+      "ok": true,
+      "detail": "30 拍全部吻合=True；0x10 后=0x10、再后=0x09、再后=0x08（期望 0x10/0x09/0x08）；出现 0x99=False"
+    },
+    {
+      "name": "§12.9-10 方向键连发：首拍 1 个 + 500ms 起每 100ms 一个（9 个 tick_100 → 共 6 个）",
+      "ok": true,
+      "detail": "实测脉冲 6 个（应 6）；时刻 = ['11030', '11310', '11370', '11430', '11490', '11550'] ns；期望 = ['11030', '11310', '11370', '11430', '11490', '11550'] ns"
+    },
+    {
+      "name": "§12.9-10/13 反向：非方向键（选择）按住 9 个 tick_100 也不产生 o_dir_out 脉冲",
+      "ok": true,
+      "detail": "该窗口内 o_dir_out 非零脉冲数 = 0（应 0）"
+    },
+    {
+      "name": "§12.9-13 非拼图态（S_IDLE）按住方向键 + 连发窗口 → o_dir_out 全程为 0",
+      "ok": true,
+      "detail": "S_IDLE 窗口内 o_dir_out 非零脉冲数 = 0（应 0）"
+    },
+    {
+      "name": "§12.9-9 第二关图案随机：重开 20 次，o_pattern_sel 的 001 与 010 都出现过",
+      "ok": true,
+      "detail": "20 次重开采到的图案集合 = {0x01, 0x02}（期望 {0x01, 0x02}）"
+    },
+    {
+      "name": "脉冲宽度契约（CLAUDE.md §10.1）：o_sel_out/o_conf_out/o_round_start/o_dir_out 一律恰好 1 个 clk",
+      "ok": true,
+      "detail": "全部脉冲宽度均为 1 拍"
+    },
+    {
+      "name": "§12.8 要点 9 / CLAUDE.md §10.1：o_sound_trig 一律单周期脉冲（1 个 clk）",
+      "ok": true,
+      "detail": "全部 o_sound_trig 脉冲宽度均为 1 拍"
+    },
+    {
+      "name": "§12.9-2 按开始采样种子：o_seed 非零（LFSR 全 0 是吸收态）",
+      "ok": true,
+      "detail": "采样到的 o_seed = 0x0A（应非 0）"
+    }
+  ]
+}
