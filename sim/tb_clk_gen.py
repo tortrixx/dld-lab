@@ -21,6 +21,7 @@
 
 【三个场景】用环境变量 `CLK_GEN_SCENARIO` 选（默认 `scaled`）
     scaled     CLK_HZ=16000       —— 覆盖 docs/02 §3.6 的 1~8、10、11
+                                    （sys_en 走"高→低→高"完整往返，§3.6-5 两个方向都测）
     fullspeed  CLK_HZ=50_000_000  —— 覆盖 6250:1 分频比（板上档位 7 的那一档）
     btnheld    CLK_HZ=16000、i_btn_rst 全程 = 1 —— 覆盖 §3.6-9
 
@@ -59,6 +60,7 @@ T_RELEASE   = 1_100_000_000.0   # 长按结束（应快速释放）
 T_SHORT_ON  = 1_150_000_000.0   # 短按开始（10ms，应被消抖滤掉）
 T_SHORT_OFF = 1_160_000_000.0   # 短按结束
 T_SYS_OFF   = 1_200_000_000.0   # SW7 拉低（应组合立即复位）
+T_SYS_ON    = 1_220_000_000.0   # SW7 回高（应组合立即释放）—— 补"拉低再拉高"完整往返
 
 if SCENARIO == "fullspeed":
     CLK_PERIOD = 20.0           # 50MHz
@@ -129,7 +131,12 @@ def build(b):
         b.segments("sys_en", [(DURATION, 1)])
         b.segments("i_btn_rst", [(DURATION, 0)])
     else:
-        b.segments("sys_en", [(T_SYS_OFF, 1), (DURATION - T_SYS_OFF, 0)])
+        # SW7 高 → 低 → 高：既测"拉低断言"，也测"拉高释放"与完整往返
+        b.segments("sys_en", [
+            (T_SYS_OFF, 1),                       # 正常运行
+            (T_SYS_ON - T_SYS_OFF, 0),            # 拉低：应组合立即复位
+            (DURATION - T_SYS_ON, 1),             # 回高：应组合立即释放
+        ])
         b.segments("i_btn_rst", [
             (T_PRESS, 0),
             (T_RELEASE - T_PRESS, 1),        # 长按 50ms（≥20ms，应触发）
@@ -191,17 +198,30 @@ def _check_scaled(vf):
         "缺失：%s" % no_wave if no_wave else "、".join(BURIED.keys()),
     ))
 
-    # ---- §3.6-1：sys_en=1 时，前 ~10ms o_rst='1'，之后恒 '0' ----
+    # ---- §3.6-1：sys_en=1 时，前 ~9ms o_rst='1'，之后恒 '0' ----
+    # 【期望值来源：手算，独立于 RTL 常量】
+    #   POR 计数器数的是 tick_1k（1ms/拍）；释放判定 `r_por_cnt = T_POR_MS-1` 在
+    #   每个 clk 沿无条件求值，而 r_por_cnt 只在 tick_1k 时 +1。
+    #   计数序列 0→1→…→9 只累加了 **9 个 tick_1k**，随后下一个 clk 沿即释放
+    #   ⇒ 释放时长 = 9 × 1ms + 相位偏移 ≈ 9.156ms（docs/02 §3.6-1 订正值）。
+    #   → 窗口取 [9.0, 9.5]ms：容纳实测 9.156ms，且**排除 10.0ms**——
+    #     若实现仍是"满 10ms 才释放"（未订正的 off-by-one），t_fall≈10.0ms
+    #     会落在窗口外 → 本条直接失败（旧窗口 [8,10.6]ms 对 9/10 是盲的）。
+    POR_LO, POR_HI = 9.0e6, 9.5e6
     t_fall = _fall_after(vf, "o_rst", 0.0)
+    in_win = t_fall is not None and POR_LO <= t_fall <= POR_HI
+    not_10ms = t_fall is not None and t_fall < 9.9e6     # 显式断言"不是 10ms"
     ok = (_lv(vf, "o_rst", 5e6) == "1" and _lv(vf, "o_rst", 12e6) == "0"
           and _lv(vf, "o_rst", 500e6) == "0" and _lv(vf, "o_rst", 1000e6) == "0"
-          and t_fall is not None and 8.0e6 <= t_fall <= 10.6e6)
+          and in_win and not_10ms)
     res.append((
-        "② §3.6-1 上电复位：sys_en=1 时前 ~10ms o_rst='1'，之后恒 '0'",
+        "② §3.6-1 上电复位释放时刻 ∈ [9.0,9.5] ms（订正后 ≈9.156ms；显式排除 10.0ms）",
         ok,
         "o_rst 5ms=%s / 12ms=%s / 500ms=%s / 1000ms=%s；释放时刻 = %s"
+        "（∈[9.0,9.5]ms：%s；非 10ms：%s）"
         % (_lv(vf, "o_rst", 5e6), _lv(vf, "o_rst", 12e6),
-           _lv(vf, "o_rst", 500e6), _lv(vf, "o_rst", 1000e6), _fmt(t_fall)),
+           _lv(vf, "o_rst", 500e6), _lv(vf, "o_rst", 1000e6), _fmt(t_fall),
+           "✓" if in_win else "✗", "✓" if not_10ms else "✗"),
     ))
 
     T0 = 12e6                   # 观察窗起点：POR 已释放、按键尚未动
@@ -304,6 +324,35 @@ def _check_scaled(vf):
         "sys_en 拉低于 %s；o_rst 前 %s / 后 %s / +10ms %s"
         % (_fmt(T_SYS_OFF), _lv(vf, "o_rst", T_SYS_OFF - 1e6),
            _lv(vf, "o_rst", T_SYS_OFF + 1e3), _lv(vf, "o_rst", T_SYS_OFF + 10e6)),
+    ))
+
+    # ---- §3.6-5（反向）：sys_en 回高（其余两源为 0）→ o_rst 组合释放 ----
+    #   补"只测了拉低方向"的缺口：`(not sys_en)` 这一项的**释放侧**此前完全没验。
+    #   此时 POR 早已释放（r_por_rst=0）、按键未按（r_btn_rst=0），故 o_rst 只由 sys_en 决定。
+    ok = (_lv(vf, "o_rst", T_SYS_ON - 1e6) == "1"        # 回高前：sys_en 仍低，复位中
+          and _lv(vf, "o_rst", T_SYS_ON + 1e3) == "0"    # 回高后：组合立即释放
+          and _lv(vf, "o_rst", T_SYS_ON + 10e6) == "0")  # 之后保持释放
+    res.append((
+        "⑫ §3.6-5（反向）sys_en 回高（其余两源为 0）→ o_rst 组合释放 = '0'",
+        ok,
+        "sys_en 回高于 %s；o_rst 前 %s / 后 %s / +10ms %s"
+        % (_fmt(T_SYS_ON), _lv(vf, "o_rst", T_SYS_ON - 1e6),
+           _lv(vf, "o_rst", T_SYS_ON + 1e3), _lv(vf, "o_rst", T_SYS_ON + 10e6)),
+    ))
+
+    # ---- §3.6-5 完整往返（高→低→高）：o_rst 全程跟随 sys_en，回高后不再误断言 ----
+    #   采样点横跨"拉低前 / 拉低中 / 回高前 / 回高瞬间 / 回高后"，并显式要求
+    #   回高之后 o_rst 不再出现任何 '1'（防止释放后又被别的源误拉高）。
+    samples = [T_SYS_OFF - 1e6, T_SYS_OFF + 1e6, T_SYS_ON - 1e6,
+               T_SYS_ON + 1e3, T_SYS_ON + 5e6, DURATION - 1e3]
+    got = [_lv(vf, "o_rst", t) for t in samples]
+    after = [t for (t, lv) in vf.trace("o_rst") if t > T_SYS_ON and lv == "1"]
+    ok = got == ["0", "1", "1", "0", "0", "0"] and not after
+    res.append((
+        "⑬ §3.6-5 完整往返（高→低→高）：o_rst 跟随 sys_en，回高后不再误断言",
+        ok,
+        "采样 o_rst = %s（应 ['0','1','1','0','0','0']）；回高后 o_rst='1' 次数 = %d"
+        % (got, len(after)),
     ))
 
     return res

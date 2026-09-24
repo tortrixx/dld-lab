@@ -24,6 +24,16 @@
     所以本 tb **按输出自身的行为**判相（段码非 0 = 显示半拍，段码为 0 = 消隐半拍），
     `r_blank_ph` / `r_digit` 只用于**相位机本身的**断言（§5.7-5 的周期与完整循环）。
 
+【2026-09-24 审查 P1-3 补强】（本版新增）
+    ① 消隐相（⑥）从"只抽查切换前一个点"改为**逐次、整拍、两个位置**都断言：
+       对每一次位选切换 tc，既测**切换前一拍** [tc-TICK, tc)、也测**切换后一拍**
+       [tc+TICK, tc+2·TICK) 的 o_seg 全 0；每拍取 3 个采样点，确保是"整拍全 0"。
+    ② 去掉近似恒真式：原 ②（"o_cat 一热"，RTL 结构上必真）与 ③（"8 位号都出现"，
+       自由计数器必真）改写为**可判伪**的断言 ——
+       · ② 把位选与数据耦合：选中位 k 时 o_seg 必须 = DISPk 段码（0x12345678 的
+         8 个段码互异 → 位号错位/镜像/差一拍必被抓）；
+       · ③ 改测**推进规律**：被选位号必须按 +1(mod 8) 连续循环（跳号/镜像必被抓）。
+
 【激励时间线】（单位 ns；`i_tick` 周期 40ns，`clk` 周期 20ns，rst 前 40ns 为高）
     每个窗口 800ns = 20 个 i_tick，窗口内 `i_disp_val` / `i_blank` 恒定：
       W1 80~880    disp=0x12345678  blank=0x00   DISP0..7 依次显示 8,7,6,5,4,3,2,1（全不灭）
@@ -95,6 +105,14 @@ def _digit_of(cat):
     return zeros[0] if len(zeros) == 1 else None
 
 
+def _win_at(t):
+    """t 落在哪个激励窗口内（用于按"当时输入"取期望段码）。"""
+    for w in WINDOWS:
+        if w["start"] <= t < w["end"]:
+            return w
+    return None
+
+
 def _bus_trace(vf, name, width):
     """把一个总线的逐比特波形拼成 [(时刻, 整数值), ...]（值变化点）。"""
     times = set()
@@ -159,6 +177,11 @@ def check(vf):
         win_samples[w["name"]] = ss
     all_samples = [s for w in WINDOWS for s in win_samples[w["name"]]]
 
+    # 位选变化点：o_cat 的每一次跳变（供 ②③⑥ 复用；与采样时刻解耦）
+    cat_tr = _bus_trace(vf, "o_cat", 8)
+    switches = [(tc, vp, vc) for ((_tp, vp), (tc, vc)) in zip(cat_tr, cat_tr[1:])
+                if tc >= WINDOWS[0]["start"] and vc != vp]
+
     # ========================================================
     # ① 位序逐位（8 条）：DISPk 的数据 = 第 k 个半字节，出现在 o_cat 仅 bit k 为低时
     # ========================================================
@@ -177,26 +200,53 @@ def check(vf):
         ))
 
     # ========================================================
-    # ② 单一位选：任意时刻 o_cat 要么全高（全灭），要么恰一位为低
+    # ② §5.7-1 单一位选 + 位选↔段码同源（**可判伪**：不再只测"结构上一热"）
+    #   RTL 的 o_cat = not (1 sll r_digit) 结构上必然一热，故"只看一热"是恒真式；
+    #   这里把"位选"与"数据"耦合起来才可判伪：
+    #     · 反例输入 W1 = 0x12345678 → DISP0..7 的段码 0x7F/0x07/0x7D/0x6D/0x66/
+    #       0x4F/0x5B/0x06 **互不相同** → 一旦"段码取的半字节"与"位选位号"错开
+    #       （位号错位 / 镜像 / 差一拍），某状态下 o_seg ≠ DISPk 的段码 → 失败；
+    #     · 若同时拉低两位位选（多路复用写错），低位列表长度 ≠ 1 → 失败。
     # ========================================================
-    bad = []
+    bad, n_lit = [], 0
     for (t, cat, seg) in all_samples:
-        if cat != 0xFF and _digit_of(cat) is None:
-            bad.append("t=%.0f cat=0x%02X（低位=%r）" % (t, cat, [b for b in range(8) if not (cat >> b) & 1]))
+        zeros = [b for b in range(8) if not (cat >> b) & 1]
+        if cat != 0xFF and len(zeros) != 1:
+            bad.append("t=%.0f o_cat=0x%02X 低位=%r（应全高或恰一位低）" % (t, cat, zeros))
+            continue
+        if len(zeros) == 1 and seg != 0:
+            k = zeros[0]
+            w = _win_at(t)
+            es = _exp_seg(w["disp"], w["blank"], k)
+            n_lit += 1
+            if seg != es:
+                bad.append("t=%.0f DISP%d seg=0x%02X 应=0x%02X（位选与段码不同源）"
+                           % (t, k, seg, es))
     res.append((
-        "② 单一位选：任意时刻 o_cat 为 0xFF（全灭）或恰一位为低，绝不多位同时选中",
-        not bad,
-        "\n".join(bad[:5]) if bad else "全部采样自洽（共 %d 点）" % len(all_samples),
+        "② §5.7-1 单一位选且位选↔段码同源：o_cat 全高或恰一位低；选中位 k 时 "
+        "o_seg == DISPk 段码（0x12345678 八码互异，错位必被抓）",
+        (not bad) and n_lit > 0,
+        "\n".join(bad[:5]) if bad else "共 %d 个显示状态，位选与段码全部同源" % n_lit,
     ))
 
     # ========================================================
-    # ③ 8 个位号全部被扫描到
+    # ③ §5.7-1 位序循环（**可判伪**：不只"8 位都出现过"）
+    #   "8 个位号都出现"对自由计数器恒真；这里改测**推进规律**：
+    #   被选位号必须按 0→1→…→7→0 连续推进（相邻之差 mod 8 恰为 +1）。
+    #   反例：若位选译码写成 1 sll (r_digit+1)、或把 r_digit 的位序镜像、
+    #         或计数器跳号（+2），则相邻被选位号之差 ≠ +1 → 本条失败。
     # ========================================================
-    seen = sorted({_digit_of(cat) for (t, cat, seg) in all_samples if _digit_of(cat) is not None})
+    ds = [_digit_of(v) for (t, v) in cat_tr if t >= WINDOWS[0]["start"]]
+    ds = [k for k in ds if k is not None]
+    order_bad = ["%d→%d" % (ds[i], ds[i + 1]) for i in range(len(ds) - 1)
+                 if ((ds[i + 1] - ds[i]) % 8) != 1]
+    seen = sorted(set(ds))
     res.append((
-        "③ 位计数器 0→7 完整循环：8 个位号全部出现过",
-        seen == list(range(8)),
-        "出现过的位号：%s" % seen,
+        "③ §5.7-1 位序循环：被选位号按 +1(mod 8) 连续推进、8 位全部出现"
+        "（位号错位/跳号/镜像必被抓）",
+        len(ds) >= 8 and not order_bad and seen == list(range(8)),
+        "位号序列前 12 个 = %s…；异常相邻对 = %s；出现位号 = %s"
+        % (ds[:12], order_bad[:5] if order_bad else "无", seen),
     ))
 
     # ========================================================
@@ -248,20 +298,34 @@ def check(vf):
     ))
 
     # ========================================================
-    # ⑥ 消隐相：每次位选切换前，整整一拍 o_seg = 0（防鬼影）
+    # ⑥ 消隐相：每次位选切换的**前一拍与后一拍**整拍 o_seg = 0x00
+    #   （两个位置都测、逐次断言 —— 不再只抽查"切换前"一个采样点）
+    #   两相扫描的正确时序（TICK = 一个 i_tick = 一拍）：
+    #       …[消隐][显示/切位选][消隐][显示/切位选]…
+    #     · 切换前一拍 [tc-TICK, tc)：上一位仍被选中，但段码必须已全灭；
+    #     · 切换后一拍 [tc+TICK, tc+2·TICK)：新位显示拍之后的消隐拍，段码全灭。
+    #   反例：若消隐相不消隐（直接"切位选 + 给段码"），切换前一拍会残留上一位段码
+    #         → 失败；若只在切换后补一拍消隐、切换前不灭 → 前一拍断言失败。
+    #   每拍取 3 个采样点（而非 1 个），确保是"整拍全 0"而不是某一瞬间恰好为 0。
     # ========================================================
-    cat_tr = _bus_trace(vf, "o_cat", 8)
-    switch_t = [t for (t, v) in cat_tr if t >= WINDOWS[0]["start"]]
     bad = []
-    for tc in switch_t:
-        for dt in (SAMPLE_OFFSET, TICK_PERIOD / 2, TICK_PERIOD - SAMPLE_OFFSET):
+    for (tc, _vp, _vc) in switches:
+        for dt in (SAMPLE_OFFSET, TICK_PERIOD * 0.5, TICK_PERIOD - SAMPLE_OFFSET):
             seg = vf.bus_value_at("o_seg", tc - dt)
             if seg != 0:
-                bad.append("切换 t=%.0f 前 %.0fns 处 seg=0x%02X（应 0x00）" % (tc, dt, seg))
+                bad.append("切换 t=%.0f 前一拍(-%.0fns) seg=0x%02X（应 0x00）" % (tc, dt, seg))
+        if tc + 2 * TICK_PERIOD <= DURATION:
+            for dt in (TICK_PERIOD + SAMPLE_OFFSET, TICK_PERIOD * 1.5,
+                       2 * TICK_PERIOD - SAMPLE_OFFSET):
+                seg = vf.bus_value_at("o_seg", tc + dt)
+                if seg != 0:
+                    bad.append("切换 t=%.0f 后一拍(+%.0fns) seg=0x%02X（应 0x00）" % (tc, dt, seg))
     res.append((
-        "⑥ 消隐相段码全 0：每次位选切换前整整一拍 o_seg=0x00（无鬼影）",
-        not bad,
-        "\n".join(bad[:5]) if bad else "共 %d 次位选切换，切换前一拍段码全为 0x00" % len(switch_t),
+        "⑥ 消隐相段码全 0：每次位选切换的**前一拍与后一拍**整拍 o_seg=0x00"
+        "（逐次断言，共 %d 次切换）" % len(switches),
+        (not bad) and len(switches) > 0,
+        "\n".join(bad[:5]) if bad else
+        "共 %d 次位选切换：前一拍、后一拍各 3 个采样点段码全为 0x00" % len(switches),
     ))
 
     # ========================================================
@@ -320,6 +384,7 @@ def check(vf):
     # ========================================================
     # ⑩ 每位周期：恰 2 个 i_tick（1 拍消隐 + 1 拍显示）
     # ========================================================
+    switch_t = [tc for (tc, _vp, _vc) in switches]
     cd = [round(switch_t[i + 1] - switch_t[i], 6) for i in range(len(switch_t) - 1)]
     ok = bool(cd) and all(abs(d - 2 * TICK_PERIOD) < 1e-6 for d in cd)
     res.append((

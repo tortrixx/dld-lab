@@ -1,0 +1,52 @@
+{
+  "module": "disp_format",
+  "round": 2,
+  "timestamp": "2026-09-24 18:08:44",
+  "duration_ns": 1000.0,
+  "rtl_patches": [],
+  "passed": 8,
+  "total": 8,
+  "all_pass": true,
+  "assertions": [
+    {
+      "name": "① 掩码约定：TARGET1 解回 8×8 网格 == 第 2~5 行 × 第 2~4 列",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "② S_SELF_TEST + blink=0 → 点阵全灭、o_blank=0xFF（数码管全灭）",
+      "ok": true,
+      "detail": "o_px_red=0x0000000000000000  o_px_green=0x0000000000000000  o_blank=0xFF"
+    },
+    {
+      "name": "③ S_SELF_TEST + blink=1 → 点阵 64 位全亮（红+绿=黄）、数码管全 8",
+      "ok": true,
+      "detail": "o_px_red=0xFFFFFFFFFFFFFFFF  o_px_green=0xFFFFFFFFFFFFFFFF  o_disp_val=0x88888888  o_blank=0x00"
+    },
+    {
+      "name": "④ S_IDLE → DISP7=5、DISP0=关卡号 1、其余全灭、点阵全灭",
+      "ok": true,
+      "detail": "o_disp_val=0x50000001  o_blank=0x7E  o_px_red=0x0000000000000000"
+    },
+    {
+      "name": "⑤ S_PREVIEW → o_px_red 与目标掩码**逐位相同**、绿=0、DISP7=预览倒数",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "⑥a S_PLAYING(倒计时 30) → 像素透传；DISP4=3、DISP3=0，两位都亮",
+      "ok": true,
+      "detail": "o_disp_val=0x00030001  o_blank=0xE6（bit4=0 应为 0）"
+    },
+    {
+      "name": "⑥b S_PLAYING(倒计时 9) → DISP4=0 但**熄灭**、DISP3=9 亮（显示 \"9\" 而非 \"09\"）",
+      "ok": true,
+      "detail": "o_disp_val=0x00009001  o_blank=0xF6（bit4=1 应为 1）"
+    },
+    {
+      "name": "⑦ S_WIN / S_FAIL → 点阵显示目标图案（红）、绿=0",
+      "ok": true,
+      "detail": "WIN.o_px_red=0x00001C1C1C1C0000  FAIL.o_px_red=0x00001C1C1C1C0000  WIN.o_px_green=0x0000000000000000"
+    }
+  ]
+}
