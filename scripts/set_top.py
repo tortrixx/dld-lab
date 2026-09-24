@@ -126,6 +126,13 @@ def main() -> int:
     print("     GUI：Processing → Start Compilation")
     print("     命令行：quartus_sh --flow compile puzzle")
     print("  ⚠️ Quartus 开着工程时请先关掉工程，或改完在 Quartus 里选 Reload。")
+    print()
+    print("  ⚠️⚠️ 换顶层 = **换掉板上跑的程序**，不是'烧一次新版本' ——")
+    print("       四个显示器件与键盘的含义全部改变（ld 只在自检顶层存在；")
+    print("       自检顶层没有 S_SELF_TEST / 游戏逻辑 / puzzle_ctrl）。")
+    print("       **烧录前先跟现场的人说清'接下来会看到什么'**，否则必被误判成'坏了'")
+    print("       （2026-09-24 实测，见 ERRORS.md ERR-0036）。")
+    print("       对照表见 docs/06-Quartus编译与烧录流程.md §5。")
     return 0
 
 
