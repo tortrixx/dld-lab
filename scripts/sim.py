@@ -342,7 +342,11 @@ def _safe_rmtree(p):
 
 
 def cmd_clean():
-    """清理 .tmp/ 下的所有隔离工程。"""
+    """清理 .tmp/ 下的所有隔离工程。
+
+    ⚠️ 这是**显式**操作，可能触发执行环境的"批量删除确认"闸门 ——
+    被拦下时请按提示手动确认，或在文件管理器里删 `.tmp/sim_*`。
+    """
     n = 0
     for d in sorted(TMP_DIR.glob("sim_*")):
         if d.is_dir() and _safe_rmtree(d):
@@ -356,9 +360,8 @@ def _make_isolated_project(module, patches):
 
     **仓库里的 rtl/ 与 quartus/puzzle.qsf 全程只读。**
     """
+    # ⚠️ 同样不删目录：直接复用并覆盖同名文件（同名文件必然被重写，不会留陈旧内容）
     d = TMP_DIR / ("sim_" + module)
-    if d.exists():
-        _safe_rmtree(d)
     (d / "rtl").mkdir(parents=True, exist_ok=True)
 
     applied = 0
@@ -429,12 +432,14 @@ def cmd_run(module, round_no=None):
             print("  ✗ 仿真失败")
             return 1
     finally:
-        # ⚠️ 隔离工程跑完就删 —— 但**删除失败绝不能影响 check**（见 _safe_rmtree 的说明）
-        if _safe_rmtree(proj):
-            print("  ✓ 已清理隔离工程（仓库未被改动）")
-        else:
-            print("  ✓ 仓库未被改动（隔离工程残留在 %s，可跑 `sim.py clean` 清理）"
-                  % proj.relative_to(ROOT))
+        # ⚠️⚠️ **不要在这里删隔离工程**。
+        #    2026-09-24 实测：隔离工程约 75~79 个文件，删除会触发执行环境的
+        #    "批量删除确认"闸门 —— 它会**直接 SIGTERM 掉本进程**，
+        #    于是 `try/except` 根本拦不住（不是异常，是信号）→ `check` 那一步永远到不了。
+        #    → 结论：**自动清理这件事本身必须去掉**；`.tmp/` 已在 `.gitignore` 里，残留无害。
+        #    需要清理时由人显式跑 `python scripts/sim.py clean`。
+        print("  ✓ 仓库未被改动（隔离工程留在 %s，需要时跑 `sim.py clean`）"
+              % proj.relative_to(ROOT))
 
     print()
     print("== 步骤 3：解析结果 + 参考模型比对 + 写轮次记录 ==")

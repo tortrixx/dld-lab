@@ -1,0 +1,42 @@
+{
+  "module": "keypad_scan",
+  "round": 3,
+  "timestamp": "2026-09-24 16:52:10",
+  "duration_ns": 12480.0,
+  "rtl_patches": [],
+  "passed": 6,
+  "total": 6,
+  "all_pass": true,
+  "assertions": [
+    {
+      "name": "① 列驱动极性：每个相恰好选中一列（驱 '0'）、其余驱 '1'、位号 = 相号",
+      "ok": true,
+      "detail": "低有效：相0=1110；相1=1101；相2=1011；相3=0111"
+    },
+    {
+      "name": "② 无键不误报（文档预测：不得误报）—— 26 轮行全为板子空闲电平",
+      "ok": true,
+      "detail": "实测：不误报；o_key_code 非 0 次数 = 0；首个非 0 键号 = X；Phase A 脉冲数 = 0。（板型判定规则『行空闲电平 == 按下电平 ⇒ 必误报』预测 = 不误报）"
+    },
+    {
+      "name": "③ 真实按键：按住 KEY2（ROW3/COL1）→ 第 1 个轮末 o_key_code = 2，按住期间恒 2",
+      "ok": true,
+      "detail": "低有效：行读到 '0' = 按下；第 1 个轮末 o_key_code=0x02（期望 2）；按住期偏离次数 = 0"
+    },
+    {
+      "name": "④ 消抖时长：o_key_press 恰 1 个脉冲，上升沿落在第 21 个轮末、距按下沿 80~87ms",
+      "ok": true,
+      "detail": "Phase B 脉冲数 = 1；脉冲沿 = 7510（期望 7510 ns）；距按下沿 83.75 ms"
+    },
+    {
+      "name": "⑤ 脉冲宽度契约（CLAUDE.md §10.1）：每个 o_key_press 高电平恰好 1 个 clk",
+      "ok": true,
+      "detail": "Phase B 脉冲宽度（clk 拍数）：['1']"
+    },
+    {
+      "name": "⑥ 松开后 o_key_code 归 0、无新脉冲",
+      "ok": true,
+      "detail": "Phase C 脉冲数 = 0；o_key_code 非 0 次数 = 0"
+    }
+  ]
+}

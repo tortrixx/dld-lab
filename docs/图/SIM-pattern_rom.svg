@@ -1,0 +1,24 @@
+<svg viewBox='0 0 680 84' width='100%' xmlns='http://www.w3.org/2000/svg'>
+<title>pattern_rom 功能仿真波形</title>
+<rect width='680' height='84' fill='none'/>
+<text x='8' y='45' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>i_sel</text>
+<line x1='150' y1='52' x2='660' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 40 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='36' x2='150.0' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='213.8' y1='36' x2='213.8' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='277.5' y1='36' x2='277.5' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='341.2' y1='36' x2='341.2' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='405.0' y1='36' x2='405.0' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='468.8' y1='36' x2='468.8' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='532.5' y1='36' x2='532.5' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='596.2' y1='36' x2='596.2' y2='52' stroke='#5F5E5A' stroke-width='0.5'/>
+<text x='8' y='67' font-size='12' fill='#B5D4F4' dominant-baseline='middle'>o_mask</text>
+<line x1='150' y1='74' x2='660' y2='74' stroke='#5F5E5A' stroke-width='0.5'/>
+<path d='M150 62 H660' fill='none' stroke='#85B7EB' stroke-width='1.2'/>
+<line x1='150.0' y1='58' x2='150.0' y2='74' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='213.8' y1='58' x2='213.8' y2='74' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='277.5' y1='58' x2='277.5' y2='74' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='341.2' y1='58' x2='341.2' y2='74' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='405.0' y1='58' x2='405.0' y2='74' stroke='#5F5E5A' stroke-width='0.5'/>
+<line x1='468.8' y1='58' x2='468.8' y2='74' stroke='#5F5E5A' stroke-width='0.5'/>
+</svg>
