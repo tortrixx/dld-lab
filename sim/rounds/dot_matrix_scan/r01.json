@@ -1,0 +1,32 @@
+{
+  "module": "dot_matrix_scan",
+  "round": 1,
+  "timestamp": "2026-09-24 18:08:44",
+  "duration_ns": 2000.0,
+  "rtl_patches": [],
+  "passed": 4,
+  "total": 4,
+  "all_pass": true,
+  "assertions": [
+    {
+      "name": "① 每个输出状态自洽：消隐相全灭；显示相 row 恰好一位低、colr == 掩码第 r 行的 8 位（无翻转）",
+      "ok": true,
+      "detail": "共 9 个不同状态，全部自洽"
+    },
+    {
+      "name": "② 8 个行号全部出现过（行计数器 0→7 完整循环）",
+      "ok": true,
+      "detail": "出现过的行号：[0, 1, 2, 3, 4, 5, 6, 7]"
+    },
+    {
+      "name": "③ 出现过消隐相（两相扫描的防鬼影前提）",
+      "ok": true,
+      "detail": "消隐相状态数：1"
+    },
+    {
+      "name": "④ 第 2~5 行的列数据均为 0x1C（= 目标掩码该行的第 2~4 列）",
+      "ok": true,
+      "detail": "实测 行2=0x1C, 行3=0x1C, 行4=0x1C, 行5=0x1C"
+    }
+  ]
+}
