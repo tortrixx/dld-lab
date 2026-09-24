@@ -25,14 +25,35 @@ entity keypad_scan is
         clk         : in  std_logic;
         rst         : in  std_logic;
         i_tick      : in  std_logic;                    -- 1kHz（扫描 + 消抖计时）
-        i_kp_row    : in  std_logic_vector(3 downto 0); -- 行输入，按下 = '1'
-        o_kp_col    : out std_logic_vector(3 downto 0); -- 列扫描，逐列为 '1'
+        i_kp_row    : in  std_logic_vector(3 downto 0); -- 行输入，按下 = '0'（低有效，见 KP_ACTIVE）
+        o_kp_col    : out std_logic_vector(3 downto 0); -- 列扫描，选中列驱 '0'、其余驱 '1'
         o_key_code  : out std_logic_vector(4 downto 0); -- 键号 1~16；0 = 无键
         o_key_press : out std_logic                     -- 单次按下脉冲，宽 1 个 clk
     );
 end entity keypad_scan;
 
 architecture rtl of keypad_scan is
+
+    -- ============================================================
+    -- ★ 键盘扫描极性 —— 全项目**唯一的极性翻转点**
+    --   KP_ACTIVE = '0' → **低有效**：选中列驱 '0'、其余驱 '1'；
+    --                    按下时该键把选中列的低电平接到行上，**行读到 '0' 即"按下"**。
+    --   KP_ACTIVE = '1' → 高有效：选中列驱 '1'，行读到 '1' 即"按下"。
+    --
+    --   ※ 为什么低有效对两种板子都成立（本方案被选中的理由）：
+    --     · 行外接**下拉** → 无键时行 = 0；按下时选中列的低电平仍把行压成 0
+    --       → 靠"选中列是低、其余列是高"区分：读 0 = 按下 √
+    --     · 行外接**上拉** → 无键时行 = 1；按下时被选中列拉低 → 读 0 = 按下 √
+    --
+    --   ※ 2026-09-24 上板实测订正（ERRORS.md ERR-0035）：
+    --     原按**开发板手册**写成高有效（驱列为高、读 1 = 按下）。
+    --     实测发现**行在无按键时就一直读到 '1'** → 每一相都误报按键 →
+    --     键号随相号循环 1→2→3→4，其中 **4 = 「开始」** →
+    --     触发 game_fsm 的全局边「任意状态按开始 → S_PREVIEW」→
+    --     系统被踢出自检态、直接进预览（现场表现为"没有 2 秒自检、直接 5 秒计时"）。
+    --     → 改为课程课件 PDF p55 的**低有效**方案（docs/04 §3.3 早已记下这处两源矛盾）。
+    -- ============================================================
+    constant KP_ACTIVE : std_logic := '0';
 
     -- 扫描相推进（★ r_phase 必须是 unsigned：裸 std_logic_vector 没有 +1）
     signal r_phase : unsigned(1 downto 0);
@@ -59,8 +80,12 @@ begin
         end if;
     end process;
 
-    -- 列输出：一次只拉高一列（1 sll phase 综合成译码器）
-    o_kp_col <= std_logic_vector(to_unsigned(1, 4) sll to_integer(r_phase));
+    -- 列输出：一次只驱动一列（1 sll phase 综合成译码器）
+    --   KP_ACTIVE = '0'（低有效）→ 选中列驱低、其余驱高；= '1' → 选中列驱高。
+    --   ★ 常量比较在综合期折叠，不额外耗 LE。
+    o_kp_col <= not std_logic_vector(to_unsigned(1, 4) sll to_integer(r_phase))
+                when KP_ACTIVE = '0'
+                else std_logic_vector(to_unsigned(1, 4) sll to_integer(r_phase));
 
     -- ============================================================
     -- 消抖与边沿检测
@@ -91,7 +116,7 @@ begin
                 --    同列多键时行号大者优先（循环里后赋值胜出，单键应用）
                 v_raw := 0;
                 for r in 0 to 3 loop
-                    if i_kp_row(r) = '1' then
+                    if i_kp_row(r) = KP_ACTIVE then
                         v_raw := (3 - r) * 4 + to_integer(r_phase) + 1;
                     end if;
                 end loop;
