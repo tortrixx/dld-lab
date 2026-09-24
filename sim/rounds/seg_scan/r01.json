@@ -1,0 +1,107 @@
+{
+  "module": "seg_scan",
+  "round": 1,
+  "timestamp": "2026-09-24 15:43:59",
+  "duration_ns": 5000.0,
+  "rtl_patches": [],
+  "passed": 19,
+  "total": 19,
+  "all_pass": true,
+  "assertions": [
+    {
+      "name": "①位序 DISP0：nibble0=8→段码0x7F 时 o_cat 仅 bit0 低（=0xFE）",
+      "ok": true,
+      "detail": "实测 o_cat=0xFE"
+    },
+    {
+      "name": "①位序 DISP1：nibble1=7→段码0x07 时 o_cat 仅 bit1 低（=0xFD）",
+      "ok": true,
+      "detail": "实测 o_cat=0xFD"
+    },
+    {
+      "name": "①位序 DISP2：nibble2=6→段码0x7D 时 o_cat 仅 bit2 低（=0xFB）",
+      "ok": true,
+      "detail": "实测 o_cat=0xFB"
+    },
+    {
+      "name": "①位序 DISP3：nibble3=5→段码0x6D 时 o_cat 仅 bit3 低（=0xF7）",
+      "ok": true,
+      "detail": "实测 o_cat=0xF7"
+    },
+    {
+      "name": "①位序 DISP4：nibble4=4→段码0x66 时 o_cat 仅 bit4 低（=0xEF）",
+      "ok": true,
+      "detail": "实测 o_cat=0xEF"
+    },
+    {
+      "name": "①位序 DISP5：nibble5=3→段码0x4F 时 o_cat 仅 bit5 低（=0xDF）",
+      "ok": true,
+      "detail": "实测 o_cat=0xDF"
+    },
+    {
+      "name": "①位序 DISP6：nibble6=2→段码0x5B 时 o_cat 仅 bit6 低（=0xBF）",
+      "ok": true,
+      "detail": "实测 o_cat=0xBF"
+    },
+    {
+      "name": "①位序 DISP7：nibble7=1→段码0x06 时 o_cat 仅 bit7 低（=0x7F）",
+      "ok": true,
+      "detail": "实测 o_cat=0x7F"
+    },
+    {
+      "name": "② 单一位选：任意时刻 o_cat 为 0xFF（全灭）或恰一位为低，绝不多位同时选中",
+      "ok": true,
+      "detail": "全部采样自洽（共 480 点）"
+    },
+    {
+      "name": "③ 位计数器 0→7 完整循环：8 个位号全部出现过",
+      "ok": true,
+      "detail": "出现过的位号：[0, 1, 2, 3, 4, 5, 6, 7]"
+    },
+    {
+      "name": "④ 段码表 0~9 逐值正确（共阴、高有效）",
+      "ok": true,
+      "detail": "数字0→0x3F ✓  数字1→0x06 ✓  数字2→0x5B ✓  数字3→0x4F ✓  数字4→0x66 ✓  数字5→0x6D ✓  数字6→0x7D ✓  数字7→0x07 ✓  数字8→0x7F ✓  数字9→0x6F ✓"
+    },
+    {
+      "name": "⑤ 非法 BCD(A~F) 全灭（W3 的 DISP7=F、W6 全 F），且合法位不受影响",
+      "ok": true,
+      "detail": "W3 DISP7 恒灭、DISP0~6 段码正确；W6 8 位全灭"
+    },
+    {
+      "name": "⑥ 消隐相段码全 0：每次位选切换前整整一拍 o_seg=0x00（无鬼影）",
+      "ok": true,
+      "detail": "共 62 次位选切换，切换前一拍段码全为 0x00"
+    },
+    {
+      "name": "⑦ 两相扫描：每个未熄灭位都有显示半拍（=表值）与消隐半拍（=0）",
+      "ok": true,
+      "detail": "所有未熄灭位均两相齐全"
+    },
+    {
+      "name": "⑧ 熄灭掩码：i_blank(3)（W4）与 i_blank(0)/i_blank(7)（W5）→ 该位全灭，其余位不受影响",
+      "ok": true,
+      "detail": "W4 DISP3 全灭、W5 DISP0/DISP7 全灭，其余位段码正确"
+    },
+    {
+      "name": "⑨ 刷新率：帧周期 = 16 × i_tick（8 位 × 2 相）→ 8kHz/16 = 500Hz",
+      "ok": true,
+      "detail": "实测帧周期 [640.0] ns = 16 × 40 ns；i_tick=8kHz 时 = 2ms → 500 Hz"
+    },
+    {
+      "name": "⑩ 每位周期 = 2 × i_tick（1 拍消隐 + 1 拍显示）",
+      "ok": true,
+      "detail": "实测相邻位选切换间隔 [80.0] ns（期望 2 × 40 = 80 ns）"
+    },
+    {
+      "name": "⑪ 复位到全灭：rst 期间/刚结束时 o_seg=0x00、o_cat=0xFF",
+      "ok": true,
+      "detail": "t=20 o_seg=0x00 o_cat=0xFF；t=45 o_seg=0x00 o_cat=0xFF"
+    },
+    {
+      "name": "⑫ 中间信号：r_digit 遍历 0~7、r_blank_ph 每个 i_tick 翻转一次",
+      "ok": true,
+      "detail": "r_digit 取值 [0, 1, 2, 3, 4, 5, 6, 7]；r_blank_ph 翻转间隔 [40.0] ns（期望 40 ns）"
+    }
+  ]
+}

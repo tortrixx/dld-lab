@@ -1,42 +1,51 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""sim.py —— 模块级功能仿真驱动（Quartus II 9.1 内置仿真器）
+"""sim.py —— 模块级功能仿真驱动（Quartus II 9.1 内置仿真器）· 隔离工程版
 
-【为什么需要它】
-    本机没有 ModelSim / GHDL，只能用 Quartus II 9.1 内置仿真器。它的三条硬限制
-    （`CLAUDE.md` §5.3 实测确认）：仿的是**综合后网表**（不支持 testbench/assert）、
-    **没有任何 Tcl 接口**（`::quartus::simulator` 是空包）、**必须有一个 .vwf 向量源**。
-    所以驱动与判定只能全用 Python —— 本脚本就是那条链路的第 2/4 步。
+【设计原则：**仓库是只读的**】
+    早期版本直接在 `quartus/puzzle.qsf` 上改顶层、并临时改写 `rtl/*.vhd`，跑完再还原。
+    这条路上出过两次事故：
+      · ERR-0037：`.qsf` 的 16 行 ld 引脚约束被截断，而且漏还原
+      · 2026-09-24：`puzzle_pkg.CLK_HZ` 漏还原（补丁中途报错 → finally 拿不到 saved）
+    → **现改为：每次仿真在 `.tmp/sim_<模块>/` 里生成一份隔离工程**
+      （RTL 副本 + 补丁 + 该目录自己的 `.qsf`），在那边编译仿真。
+      **仓库里的 `.qsf` / `rtl/*.vhd` 一个字节都不会被碰** ——
+      既不需要"还原"，也就不会"忘还原"；而且**多个模块可以真并行**。
 
-【标准循环】（`docs/03-仿真验证方案.md` §2，一步不能省）
-    写 sim/tb_<模块>.py  →  Python 生成 .vwf  →  跑 quartus_sim
-    →  Python 解析回写结果 + 与参考模型逐点比对  →  渲染波形图存 docs/图/
-    →  把原始数据写进 docs/03  →  单独 commit
+【标准循环】（`docs/03-仿真验证方案.md` §2）
+    写 sim/tb_<模块>.py → 生成 .vwf → 跑 quartus_sim
+    → 解析回写结果 + 与参考模型逐点比对 → 渲染波形图 → 写轮次记录 → 单独 commit
 
 【用法】
-    python scripts/sim.py gen   <模块>    # 只生成激励 .vwf（不碰工程）
-    python scripts/sim.py check <模块>    # 只解析结果 + 比对 + 出图
-    python scripts/sim.py run   <模块>    # 一键：绑定 → 生成网表 → 仿真 → 比对 → 还原
+    python scripts/sim.py run   <模块> [--round N]   # 一键：隔离工程 → 网表 → 仿真 → 比对 → 记录
+    python scripts/sim.py gen   <模块>               # 只生成激励 .vwf
+    python scripts/sim.py check <模块>               # 只解析现有结果 + 比对
+    python scripts/sim.py rounds [<模块>]            # 列出轮次（可追踪）
+    python scripts/sim.py diff  <模块> <N1> <N2>     # 对比两轮（可对比）
 
-【两个"绑定"步骤 —— 必须做，且必须用完还原】（`docs/03` §2.1）
-    工程只有一个顶层、一个向量源设置。要仿到被测模块，中间必须改两次工程设置：
-      A. TOP_LEVEL_ENTITY  → 被测模块（否则被测模块根本不在网表顶层，加不进波形）
-      B. VECTOR_SOURCE_FILE → sim/<模块>.vwf（否则报 `No valid vector source file specified`）
-    ⚠️ 两者都会在关工程时**写回 .qsf**。本脚本用"整文件备份 / 还原"来保证
-       **跑完之后 .qsf 与跑之前逐字节相同**（比逐项还原更稳，见 `build.tcl` 的教训）。
+【轮次记录：可追踪 / 可对比】
+    sim/rounds/<模块>/r<NN>.md     —— 人看的：断言表 + 实测值 + 波形图链接
+    sim/rounds/<模块>/r<NN>.json   —— 机读的：每条断言的通过情况 + 关键实测值
+    轮次号自动递增（`--round` 可指定）。同一模块的相邻轮次直接可比。
 
 【tb 模块契约】
-    sim/tb_<模块>.py 必须提供两个函数：
-        build(b)   —— b 是 vwf.Builder，在里面声明节点 + 驱动激励
+    sim/tb_<模块>.py 必须提供：
+        build(b)   —— b 是 vwf.Builder，声明节点 + 驱动激励
         check(vf)  —— vf 是解析后的 vwf.VwfFile，返回 [(名称, 是否通过, 说明), ...]
+    可选：
+        OBSERVE       —— 中间信号清单；**缺一即报错**（`docs/03` §3.1 第 5 条）
+        RTL_PATCHES   —— [(rtl 文件名, 原串, 新串)]，**只作用于本模块的隔离副本**
+        DURATION / GRID_PERIOD
 """
 
 import importlib.util
+import json
 import pathlib
 import re
 import shutil
 import subprocess
 import sys
+import time
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -44,23 +53,25 @@ if hasattr(sys.stdout, "reconfigure"):
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 QUARTUS_BIN = pathlib.Path(r"C:\QuartusII91\QuartusII91\quartus\bin")
 PROJ_NAME = "puzzle"
-PROJ_DIR = ROOT / "quartus"
-QSF = PROJ_DIR / (PROJ_NAME + ".qsf")
+QUARTUS_DIR = ROOT / "quartus"
+SRC_QSF = QUARTUS_DIR / (PROJ_NAME + ".qsf")
 SIM_DIR = ROOT / "sim"
+ROUNDS_DIR = SIM_DIR / "rounds"
 FIG_DIR = ROOT / "docs" / "图"
+TMP_DIR = ROOT / ".tmp"
 
 sys.path.insert(0, str(ROOT / "scripts"))
-import vwf  # noqa: E402  （同目录的 .vwf 读写库）
+import vwf  # noqa: E402
 
 
 # ============================================================
 # tb 装载
 # ============================================================
-def tb_path(module: str) -> pathlib.Path:
+def tb_path(module):
     return SIM_DIR / ("tb_%s.py" % module)
 
 
-def load_tb(module: str):
+def load_tb(module):
     p = tb_path(module)
     if not p.exists():
         raise SystemExit("✗ 找不到 %s —— 每个模块都要有自己的激励与断言文件" % p)
@@ -73,31 +84,30 @@ def load_tb(module: str):
     return mod
 
 
-def vwf_path(module: str) -> pathlib.Path:
+def vwf_path(module):
     return SIM_DIR / (module + ".vwf")
 
 
 # ============================================================
 # 第 2 步：生成激励
 # ============================================================
-def cmd_gen(module: str) -> int:
+def cmd_gen(module):
     tb = load_tb(module)
     b = vwf.Builder(duration=tb.DURATION, grid_period=tb.GRID_PERIOD)
     tb.build(b)
     out = vwf_path(module)
     b.write(str(out))
-    print("  ✓ 已生成激励 %s（时长 %.1f %s）" % (out, tb.DURATION, vwf.TIME_UNIT))
-    print("  ⚠️ 该文件会被仿真结果覆盖写回 —— 永远不要手工编辑，改 tb_*.py 重新生成。")
+    print("  ✓ 已生成激励 %s（时长 %.4g %s）" % (out.relative_to(ROOT), tb.DURATION,
+                                                vwf.TIME_UNIT))
+    print("  ⚠️ 该文件会被仿真结果覆盖写回 —— 不要手工编辑，改 tb_*.py 重新生成。")
     return 0
 
 
 # ============================================================
-# 第 4 步：解析 + 比对 + 出图
+# 解析与断言
 # ============================================================
-def _has_wave(vf, name: str) -> bool:
-    """该节点在回写的 .vwf 里有没有波形。
-    ⚠️ 总线本身**不会有** TRANSITION_LIST（`Builder.write` 对总线 continue），
-       要落到它的各比特上查 —— 这是 docs/03 §3.1 第 5 条的落地点。"""
+def _has_wave(vf, name):
+    """总线本身不会有 TRANSITION_LIST（Builder.write 对总线 continue），要落到比特上查。"""
     if name in vf.transitions:
         return True
     sig = vf.signals.get(name)
@@ -106,8 +116,7 @@ def _has_wave(vf, name: str) -> bool:
     return False
 
 
-def _bus_trace(vf, name: str):
-    """总线的 [(时刻, 整数值或 'X')]，由各比特的变化时刻合成（供出图用）。"""
+def _bus_trace(vf, name):
     sig = vf.signals.get(name)
     if sig is None or not sig.is_bus:
         return vf.trace(name)
@@ -118,70 +127,16 @@ def _bus_trace(vf, name: str):
     out = []
     for t in sorted(times):
         v = vf.bus_value_at(name, t + 1e-9)
-        if v is None:
-            v = "X"
+        v = "X" if v is None else v
         if not out or out[-1][1] != v:
             out.append((t, v))
     return out
 
 
-def cmd_check(module: str) -> int:
-    tb = load_tb(module)
-    p = vwf_path(module)
-    if not p.exists():
-        raise SystemExit("✗ 找不到 %s —— 先跑 `sim.py gen %s` 并完成仿真" % (p, module))
-
-    vf = vwf.parse(str(p))
-
-    # ⚠️ docs/03 §3.1 第 5 条：中间信号清单缺一即报错。
-    #    名字对不上时的表现**不是显眼报错，而是该节点干脆没有波形** —— 必须显式断言。
-    missing = [n for n in getattr(tb, "OBSERVE", []) if not _has_wave(vf, n)]
-    if missing:
-        print("  ✗ 观测点缺失（该节点没有 TRANSITION_LIST，说明名字在综合后网表里不存在）：")
-        for m in missing:
-            print("      %s" % m)
-        print("  → 改 sim/tb_%s.py 的 OBSERVE 清单，或换个功能上必须保留的等价观测点。" % module)
-        return 1
-
-    results = tb.check(vf)
-
-    print()
-    print("=" * 66)
-    print(" %s —— 参考模型逐点比对" % module)
-    print("=" * 66)
-    n_pass = 0
-    for name, ok, detail in results:
-        print("  %s %s" % ("✓" if ok else "✗", name))
-        if detail:
-            for line in str(detail).split("\n"):
-                print("      %s" % line)
-        n_pass += 1 if ok else 0
-    print("-" * 66)
-    print("  合计：%d / %d 通过" % (n_pass, len(results)))
-    print("=" * 66)
-
-    svg = render_svg(vf, getattr(tb, "OBSERVE", []), module)
-    FIG_DIR.mkdir(parents=True, exist_ok=True)
-    fig = FIG_DIR / ("SIM-%s.svg" % module)
-    fig.write_text(svg, encoding="utf-8")
-    print("  ✓ 波形图已存 %s" % fig.relative_to(ROOT))
-
-    return 0 if n_pass == len(results) else 1
-
-
-# ============================================================
-# 波形渲染（自写 SVG，本机没有 matplotlib）
-# ============================================================
-def _fmt_time(t: float) -> str:
-    return ("%.0f" % t) if abs(t) >= 1 else ("%.1f" % t)
-
-
-def render_svg(vf, names, title, max_sig: int = 24) -> str:
-    """把若干信号的波形画成一张内联 SVG（数字波形，总线画十六进制）。"""
+def render_svg(vf, names, title, max_sig=24):
     names = [n for n in names if _has_wave(vf, n)][:max_sig]
     if not names:
         return "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 680 40'/>"
-
     W, ROW_H, LEFT, RIGHT = 680, 22, 150, 20
     H = 40 + ROW_H * len(names)
     plot_w = W - LEFT - RIGHT
@@ -190,11 +145,10 @@ def render_svg(vf, names, title, max_sig: int = 24) -> str:
     def x(t):
         return LEFT + plot_w * (float(t) / total)
 
-    out = [
-        "<svg viewBox='0 0 %d %d' width='100%%' xmlns='http://www.w3.org/2000/svg'>" % (W, H),
-        "<title>%s 功能仿真波形</title>" % title,
-        "<rect width='%d' height='%d' fill='none'/>" % (W, H),
-    ]
+    out = ["<svg viewBox='0 0 %d %d' width='100%%' xmlns='http://www.w3.org/2000/svg'>"
+           % (W, H),
+           "<title>%s 功能仿真波形</title>" % title,
+           "<rect width='%d' height='%d' fill='none'/>" % (W, H)]
     y0 = 34
     for i, name in enumerate(names):
         y = y0 + i * ROW_H
@@ -208,18 +162,15 @@ def render_svg(vf, names, title, max_sig: int = 24) -> str:
         if is_bus:
             out.append("<path d='M%d %d H%d' fill='none' stroke='#85B7EB' "
                        "stroke-width='1.2'/>" % (LEFT, y + 6, W - RIGHT))
-            for (t, lv) in tr:
+            for (t, _lv) in tr:
                 out.append("<line x1='%.1f' y1='%d' x2='%.1f' y2='%d' stroke='#5F5E5A' "
                            "stroke-width='0.5'/>" % (x(t), y + 2, x(t), y + ROW_H - 4))
         else:
-            d = []
-            prev = None
+            d, prev = [], None
             for (t, lv) in tr:
                 yy = y + 6 if lv == 1 else y + ROW_H - 6
-                if prev is None:
-                    d.append("M%.1f %d" % (x(t), yy))
-                else:
-                    d.append("H%.1f V%d" % (x(t), yy))
+                d.append(("M%.1f %d" % (x(t), yy)) if prev is None
+                         else ("H%.1f V%d" % (x(t), yy)))
                 prev = yy
             d.append("H%.1f" % x(total))
             out.append("<path d='%s' fill='none' stroke='#85B7EB' stroke-width='1.2'/>"
@@ -228,86 +179,294 @@ def render_svg(vf, names, title, max_sig: int = 24) -> str:
     return "\n".join(out)
 
 
+def do_check(module, round_no=None, quiet=False):
+    """解析 + 比对 + 出图 + 写轮次记录。返回 (是否全过, results)。"""
+    tb = load_tb(module)
+    p = vwf_path(module)
+    if not p.exists():
+        raise SystemExit("✗ 找不到 %s —— 先跑 `sim.py gen %s` 并完成仿真" % (p, module))
+    vf = vwf.parse(str(p))
+
+    missing = [n for n in getattr(tb, "OBSERVE", []) if not _has_wave(vf, n)]
+    if missing:
+        print("  ✗ 观测点缺失（该节点没有 TRANSITION_LIST，说明名字在综合后网表里不存在）：")
+        for m in missing:
+            print("      %s" % m)
+        return False, [("观测点缺失", False, "、".join(missing))]
+
+    results = tb.check(vf)
+    n_pass = sum(1 for (_n, ok, _d) in results if ok)
+
+    if not quiet:
+        print()
+        print("=" * 66)
+        print(" %s —— 参考模型逐点比对" % module)
+        print("=" * 66)
+        for name, ok, detail in results:
+            print("  %s %s" % ("✓" if ok else "✗", name))
+            if detail:
+                for line in str(detail).split("\n"):
+                    print("      %s" % line)
+        print("-" * 66)
+        print("  合计：%d / %d 通过" % (n_pass, len(results)))
+        print("=" * 66)
+
+    FIG_DIR.mkdir(parents=True, exist_ok=True)
+    fig = FIG_DIR / ("SIM-%s.svg" % module)
+    fig.write_text(render_svg(vf, getattr(tb, "OBSERVE", []), module), encoding="utf-8")
+    if not quiet:
+        print("  ✓ 波形图已存 %s" % fig.relative_to(ROOT))
+
+    _write_round(module, round_no, results)
+    return n_pass == len(results), results
+
+
 # ============================================================
-# 一键：绑定 → 网表 → 仿真 → 比对 → 还原
+# 轮次记录（可追踪 / 可对比）
 # ============================================================
-BIND_TCL = """\
-package require ::quartus::project
-project_open %(proj)s
-set_global_assignment -name TOP_LEVEL_ENTITY %(module)s
-project_close
-"""
-
-# ⚠️ 2026-09-24 实测订正：向量源**不是** `.qsf` 里的 `VECTOR_SOURCE_FILE`
-#    （那个名字 Quartus 9.1 不认，实测报
-#     `No valid vector source file specified and default file "puzzle.cvwf" does not exist`）。
-#    9.1 的正确做法是 **`quartus_sim` 的命令行选项 `--vector_source=<file>`**
-#    （见 `quartus_sim --help`）。→ `CLAUDE.md` §5.3 与 `docs/03` §2.1 已同步订正。
+def _next_round(module):
+    d = ROUNDS_DIR / module
+    if not d.exists():
+        return 1
+    ns = []
+    for f in d.iterdir():
+        m = re.match(r"r(\d+)\.json$", f.name)
+        if m:
+            ns.append(int(m.group(1)))
+    return (max(ns) + 1) if ns else 1
 
 
-def _quartus(tool: str, *args: str) -> int:
+def _write_round(module, round_no, results):
+    n = round_no if round_no else _next_round(module)
+    d = ROUNDS_DIR / module
+    d.mkdir(parents=True, exist_ok=True)
+    tb = load_tb(module)
+    n_pass = sum(1 for (_n, ok, _d) in results if ok)
+
+    manifest = {
+        "module": module,
+        "round": n,
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "duration_ns": getattr(tb, "DURATION", None),
+        "rtl_patches": [list(x) for x in getattr(tb, "RTL_PATCHES", [])],
+        "passed": n_pass,
+        "total": len(results),
+        "all_pass": n_pass == len(results),
+        "assertions": [{"name": nm, "ok": bool(ok), "detail": (dt or "")}
+                       for (nm, ok, dt) in results],
+    }
+    (d / ("r%02d.json" % n)).write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    md = ["# %s · 第 %02d 轮仿真记录" % (module, n), "",
+          "- **时间**：%s" % manifest["timestamp"],
+          "- **结论**：%s（%d / %d 通过）" % (
+              "✅ 全部通过" if manifest["all_pass"] else "❌ 有失败项", n_pass, len(results)),
+          "- **激励时长**：%s ns" % manifest["duration_ns"],
+          "- **RTL 补丁**：%s" % (manifest["rtl_patches"] or "无（未改任何 RTL）"),
+          "- **波形图**：`docs/图/SIM-%s.svg`" % module, "",
+          "| # | 断言 | 结果 | 实测 / 说明 |", "|---|---|---|---|"]
+    for i, (nm, ok, dt) in enumerate(results, 1):
+        md.append("| %d | %s | %s | %s |" % (
+            i, nm, "✅" if ok else "❌", (dt or "").replace("\n", "<br>")))
+    md.append("")
+    (d / ("r%02d.md" % n)).write_text("\n".join(md), encoding="utf-8")
+    print("  ✓ 轮次记录已写 sim/rounds/%s/r%02d.{md,json}" % (module, n))
+
+
+def cmd_rounds(module=None):
+    if not ROUNDS_DIR.exists():
+        print("（还没有任何轮次记录）")
+        return 0
+    mods = [module] if module else sorted(d.name for d in ROUNDS_DIR.iterdir() if d.is_dir())
+    for m in mods:
+        d = ROUNDS_DIR / m
+        if not d.exists():
+            print("（%s 无记录）" % m)
+            continue
+        print("=" * 64)
+        print(" %s" % m)
+        print("=" * 64)
+        for f in sorted(d.glob("r*.json")):
+            j = json.loads(f.read_text(encoding="utf-8"))
+            bad = "、".join(a["name"][:20] for a in j["assertions"] if not a["ok"])
+            print("  r%02d  %s  %2d/%-2d  %s" % (
+                j["round"], j["timestamp"], j["passed"], j["total"],
+                "✅" if j["all_pass"] else "❌ " + bad))
+    return 0
+
+
+def cmd_diff(module, n1, n2):
+    d = ROUNDS_DIR / module
+    a = json.loads((d / ("r%02d.json" % int(n1))).read_text(encoding="utf-8"))
+    b = json.loads((d / ("r%02d.json" % int(n2))).read_text(encoding="utf-8"))
+    print("=" * 66)
+    print(" %s：r%02d  →  r%02d" % (module, a["round"], b["round"]))
+    print("=" * 66)
+    print("  通过数：%d/%d  →  %d/%d" % (a["passed"], a["total"], b["passed"], b["total"]))
+    am = {x["name"]: x["ok"] for x in a["assertions"]}
+    for x in b["assertions"]:
+        old = am.get(x["name"])
+        if old is None:
+            mark = "（新增）"
+        elif x["ok"] and not old:
+            mark = "↑ 修好了"
+        elif old and not x["ok"]:
+            mark = "↓ 退步了"
+        else:
+            mark = "·"
+        print("  %s %s" % ("✓" if x["ok"] else "✗", mark))
+        if mark != "·":
+            print("      %s" % x["name"])
+    return 0
+
+
+# ============================================================
+# 隔离工程 + 一键 run
+# ============================================================
+def _safe_rmtree(p):
+    """删除隔离工程目录 —— **失败不致命**。
+
+    ⚠️ 2026-09-24 实测：隔离工程 `quartus_map` 后约 79 个文件，
+    `shutil.rmtree` 会触发执行环境的"批量删除确认"闸门（>50 文件），
+    轻则拦下、重则**把进程 SIGTERM 掉** → `check` 那一步永远到不了。
+    → 所以这里吞掉异常并给出提示；**清理失败不影响仿真与断言**。
+    `.tmp/` 在 `.gitignore` 里，残留无害。
+    """
+    try:
+        shutil.rmtree(p, ignore_errors=True)
+        return True
+    except Exception as e:                                   # noqa: BLE001
+        print("  ⚠️ 隔离工程未能自动清理（%s）—— 无害，可稍后跑 `sim.py clean`" % e)
+        return False
+
+
+def cmd_clean():
+    """清理 .tmp/ 下的所有隔离工程。"""
+    n = 0
+    for d in sorted(TMP_DIR.glob("sim_*")):
+        if d.is_dir() and _safe_rmtree(d):
+            n += 1
+    print("  ✓ 已清理 %d 个隔离工程" % n)
+    return 0
+
+
+def _make_isolated_project(module, patches):
+    """在 `.tmp/sim_<模块>/` 生成隔离工程：RTL 副本（打补丁）+ 该目录自己的 .qsf。
+
+    **仓库里的 rtl/ 与 quartus/puzzle.qsf 全程只读。**
+    """
+    d = TMP_DIR / ("sim_" + module)
+    if d.exists():
+        _safe_rmtree(d)
+    (d / "rtl").mkdir(parents=True, exist_ok=True)
+
+    applied = 0
+    for f in sorted((ROOT / "rtl").glob("*.vhd")):
+        raw = f.read_bytes()
+        for (rel, old, new) in patches:
+            if pathlib.Path(rel).name != f.name:
+                continue
+            ob, nb = old.encode("ascii"), new.encode("ascii")
+            c = raw.count(ob)
+            if c != 1:
+                raise SystemExit("✗ 补丁锚点在 %s 里出现 %d 次（要求恰 1 次）：%r"
+                                 % (f.name, c, old))
+            raw = raw.replace(ob, nb)
+            applied += 1
+        (d / "rtl" / f.name).write_bytes(raw)
+    if applied != len(patches):
+        raise SystemExit("✗ 有补丁没被应用（应用 %d / 声明 %d）" % (applied, len(patches)))
+
+    text = SRC_QSF.read_text(encoding="utf-8")
+    text = re.sub(r"TOP_LEVEL_ENTITY\s+\S+", "TOP_LEVEL_ENTITY " + module, text)
+    if module != "board_test_top":       # 顶层不是自检时，ld 约束会悬挂 → 删掉
+        text = "\n".join(
+            l for l in text.splitlines()
+            if not re.match(r"^\s*set_location_assignment\s+PIN_\d+\s+-to\s+ld\[", l)) + "\n"
+    text = re.sub(r"\.\./rtl/(\S+)",
+                  lambda m: (d / "rtl" / m.group(1)).resolve().as_posix(), text)
+    (d / "puzzle.qsf").write_text(text, encoding="utf-8")
+    for extra in ("puzzle.qpf", "puzzle.sdc"):
+        src = QUARTUS_DIR / extra
+        if src.exists():
+            shutil.copy(src, d / extra)
+    return d
+
+
+def _quartus(cwd, tool, *args):
     exe = QUARTUS_BIN / (tool + ".exe")
     if not exe.exists():
         raise SystemExit("✗ 找不到 %s" % exe)
     print("  $ %s %s" % (tool, " ".join(args)))
-    return subprocess.call([str(exe)] + list(args), cwd=str(PROJ_DIR))
+    return subprocess.call([str(exe)] + list(args), cwd=str(cwd))
 
 
-def cmd_run(module: str) -> int:
+def cmd_run(module, round_no=None):
+    tb = load_tb(module)
     rc = cmd_gen(module)
     if rc:
         return rc
 
-    # ---- 备份 .qsf：整文件备份/还原，保证跑完逐字节相同 ----
-    if not QSF.exists():
-        raise SystemExit("✗ 找不到 %s" % QSF)
-    backup = QSF.read_bytes()
+    patches = getattr(tb, "RTL_PATCHES", [])
+    print()
+    print("== 步骤 0：在 .tmp/ 生成隔离工程（仓库全程只读）==")
+    proj = _make_isolated_project(module, patches)
+    print("  ✓ %s（顶层 %s，RTL 补丁 %d 处）" % (proj.relative_to(ROOT), module, len(patches)))
 
-    tcl = PROJ_DIR / "_sim_bind.tcl"
-    rel_vwf = "../sim/%s.vwf" % module
     try:
-        tcl.write_text(BIND_TCL % {"proj": PROJ_NAME, "module": module},
-                       encoding="utf-8")
-        print()
-        print("== 步骤 A：把被测模块绑成顶层 ==")
-        if _quartus("quartus_sh", "-t", str(tcl)):
-            print("  ✗ 绑定失败"); return 1
-        print("  ✓ 顶层 → %s" % module)
-
         print()
         print("== 步骤 1：生成功能仿真网表 ==")
-        if _quartus("quartus_map", PROJ_NAME, "--generate_functional_sim_netlist"):
-            print("  ✗ 生成网表失败"); return 1
+        if _quartus(proj, "quartus_map", PROJ_NAME, "--generate_functional_sim_netlist"):
+            print("  ✗ 生成网表失败")
+            return 1
 
         print()
-        print("== 步骤 B+3：跑功能仿真（向量源走 --vector_source，结果写回 .vwf）==")
-        if _quartus("quartus_sim", PROJ_NAME, "--mode=functional",
-                    "--overwrite_waveform=on", "--vector_source=" + rel_vwf):
-            print("  ✗ 仿真失败"); return 1
+        print("== 步骤 2：跑功能仿真（向量源 = 仓库里的 sim/%s.vwf）==" % module)
+        if _quartus(proj, "quartus_sim", PROJ_NAME, "--mode=functional",
+                    "--overwrite_waveform=on",
+                    "--vector_source=" + vwf_path(module).as_posix()):
+            print("  ✗ 仿真失败")
+            return 1
     finally:
-        QSF.write_bytes(backup)
-        if tcl.exists():
-            tcl.unlink()
-        print()
-        print("  ✓ 已还原 %s（跑完与跑之前逐字节相同）" % QSF.name)
+        # ⚠️ 隔离工程跑完就删 —— 但**删除失败绝不能影响 check**（见 _safe_rmtree 的说明）
+        if _safe_rmtree(proj):
+            print("  ✓ 已清理隔离工程（仓库未被改动）")
+        else:
+            print("  ✓ 仓库未被改动（隔离工程残留在 %s，可跑 `sim.py clean` 清理）"
+                  % proj.relative_to(ROOT))
 
     print()
-    print("== 步骤 4：解析结果 + 参考模型比对 ==")
-    return cmd_check(module)
+    print("== 步骤 3：解析结果 + 参考模型比对 + 写轮次记录 ==")
+    ok, _ = do_check(module, round_no)
+    return 0 if ok else 1
 
 
 # ============================================================
-def main() -> int:
-    if len(sys.argv) < 3:
+def main():
+    argv = sys.argv[1:]
+    round_no = None
+    if "--round" in argv:
+        i = argv.index("--round")
+        round_no = int(argv[i + 1])
+        del argv[i:i + 2]
+    if not argv:
         print(__doc__)
         return 2
-    cmd, module = sys.argv[1], sys.argv[2]
-    if cmd == "gen":
-        return cmd_gen(module)
-    if cmd == "check":
-        return cmd_check(module)
-    if cmd == "run":
-        return cmd_run(module)
+    cmd = argv[0]
+    if cmd == "gen" and len(argv) > 1:
+        return cmd_gen(argv[1])
+    if cmd == "check" and len(argv) > 1:
+        ok, _ = do_check(argv[1], round_no)
+        return 0 if ok else 1
+    if cmd == "run" and len(argv) > 1:
+        return cmd_run(argv[1], round_no)
+    if cmd == "rounds":
+        return cmd_rounds(argv[1] if len(argv) > 1 else None)
+    if cmd == "clean":
+        return cmd_clean()
+    if cmd == "diff" and len(argv) > 3:
+        return cmd_diff(argv[1], argv[2], argv[3])
     print(__doc__)
     return 2
 

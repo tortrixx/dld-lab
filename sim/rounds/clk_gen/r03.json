@@ -1,0 +1,38 @@
+{
+  "module": "clk_gen",
+  "round": 3,
+  "timestamp": "2026-09-24 16:15:47",
+  "duration_ns": 30000000.0,
+  "rtl_patches": [
+    [
+      "puzzle_pkg.vhd",
+      "50_000_000",
+      "16000"
+    ]
+  ],
+  "passed": 4,
+  "total": 4,
+  "all_pass": true,
+  "assertions": [
+    {
+      "name": "① §3.6-9 上电复位期间（前 ~10ms）o_rst='1'",
+      "ok": true,
+      "detail": "o_rst(5ms)=1；POR 释放于 9156250 ns (9.1562 ms)"
+    },
+    {
+      "name": "② §3.6-9 r_por_cnt 照常计数到顶（9）—— 上电计数器不被 o_rst 停住",
+      "ok": true,
+      "detail": "r_por_cnt 观测到的最大值 = 9（应 9 = T_POR_MS-1）"
+    },
+    {
+      "name": "③ §3.6-9 按键按住：消抖满 20ms 后 o_rst 保持 '1'（一直复位）",
+      "ok": true,
+      "detail": "o_rst 重新置位于 20093750 ns (20.0938 ms)；末态 o_rst=1"
+    },
+    {
+      "name": "④ §3.6-9 反向：POR 释放后、按键未满 20ms 消抖窗前 o_rst = '0'",
+      "ok": true,
+      "detail": "POR 释放 9156250 ns (9.1562 ms) → 消抖认定 20093750 ns (20.0938 ms) 之间 o_rst=0"
+    }
+  ]
+}

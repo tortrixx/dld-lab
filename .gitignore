@@ -90,3 +90,6 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+quartus/*.cdf
+quartus/*.qws
+quartus/db/
