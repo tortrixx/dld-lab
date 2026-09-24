@@ -314,16 +314,16 @@ begin
                             r_px_green <= r_px_green(55 downto 0) & s_fin_grn;
                         end if;
 
-                        -- 推进：行从 7 递减到 0，然后换下一块
-                        if r_eng_row = 0 then
-                            r_eng_row <= 7;
-                            if r_eng_p = 3 then
-                                r_eng_chk <= '1';   -- 最后一行已定型 → 下一拍判定
+                        -- FIX 2026-09-24 (ERR-0041): row-first scan (piece 0->3 then next row)
+                        if r_eng_p = 3 then
+                            r_eng_p <= 0;
+                            if r_eng_row = 0 then
+                                r_eng_chk <= '1';   -- last row done -> check next cycle
                             else
-                                r_eng_p <= r_eng_p + 1;
+                                r_eng_row <= r_eng_row - 1;
                             end if;
                         else
-                            r_eng_row <= r_eng_row - 1;
+                            r_eng_p <= r_eng_p + 1;
                         end if;
                     end if;
                 end if;

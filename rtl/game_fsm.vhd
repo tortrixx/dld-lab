@@ -99,6 +99,7 @@ architecture rtl of game_fsm is
 
     -- 方向键脉冲（内部信号，供音效进程读；out 端口在 VHDL-93 里不可读）
     signal r_dir_out     : std_logic_vector(3 downto 0);
+    signal r_keypress_1  : std_logic;                        -- FIX 2026-09-24 (ERR-0040): delay flag to suppress move-sound on cycle after keypress
 
     -- 图案选择（寄存输出，见 (12) 的说明）
     signal r_pattern_sel : std_logic_vector(2 downto 0);
@@ -442,6 +443,7 @@ begin
                 o_sound_sel  <= "000";
             else
                 o_sound_trig <= '0';                       -- 默认：脉冲只有一拍
+                r_keypress_1 <= i_key_press;                 -- FIX 2026-09-24 (ERR-0040): record previous keypress for move-sound gating
                 if s_win_now = '1' then
                     o_sound_sel  <= "110";                 -- 成功
                     o_sound_trig <= '1';
@@ -457,7 +459,12 @@ begin
                        s_act_sel = '1' or s_act_conf = '1') then
                     o_sound_sel  <= "001";                 -- 按键
                     o_sound_trig <= '1';
-                elsif r_dir_out /= "0000" then
+                elsif r_dir_out /= "0000" and r_keypress_1 = '0' then
+                    -- FIX 2026-09-24 (ERR-0040): gate move-sound with r_keypress_1.
+                    --    r_dir_out is cleared every cycle, but sound process sees
+                    --    previous cycle value (delayed by 1 clk). On cycle after
+                    --    keypress, r_dir_out still looks non-zero -> false move-sound.
+                    --    r_keypress_1='1' suppresses it; '0' allows burst-repeat sound.
                     o_sound_sel  <= "010";                 -- 移动（含连发）
                     o_sound_trig <= '1';
                 elsif r_state = S_PREVIEW and i_tick_1hz = '1' and
