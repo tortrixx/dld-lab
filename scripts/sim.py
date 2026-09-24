@@ -371,7 +371,7 @@ def _make_isolated_project(module, patches):
     #     不触发执行环境的"批量删除"闸门），本轮从零综合；
     #     旧目录留在 .tmp/（gitignore 内）由 `sim.py clean` 统一清。
     if d.exists():
-        stale = d.with_name("%s.stale.%d" % (d.name, int(time.time())))
+        stale = d.with_name("%s.stale.%d" % (d.name, time.time_ns()))
         try:
             os.rename(str(d), str(stale))
             print("  ⚠️ 旧隔离工程含编译数据库，已改名 %s（防陈旧网表，见 sim.py 内注释）"

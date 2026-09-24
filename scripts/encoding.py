@@ -72,11 +72,21 @@ def sanitize_for_gbk(text: str):
 
 
 def scan_bad() -> int:
-    """列出当前 rtl/*.vhd 里 GBK 装不下的字符（新增符号时先跑这个）。"""
+    """列出当前 rtl/*.vhd 里 GBK 装不下的字符（新增符号时先跑这个）。
+
+    ⚠️ 文件可能是 GBK（`encoding.py gbk` 之后的预期状态），
+    必须按 detect() 的结果解码 —— 曾直接按 UTF-8 硬读而在 GBK 文件上崩溃。
+    """
     import collections
     bad = collections.Counter()
     for p in vhd_files():
-        for ch in p.read_text(encoding="utf-8"):
+        raw = p.read_bytes()
+        enc = detect(raw)
+        if enc == "unknown":
+            print(f"⚠️ {p.name}: 编码无法识别（既非 UTF-8 也非 GBK），跳过")
+            continue
+        text = raw.decode("utf-8" if enc == "utf8" else "gbk")
+        for ch in text:
             if ord(ch) > 127:
                 try:
                     ch.encode("gbk")

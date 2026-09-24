@@ -1456,6 +1456,15 @@
 - `docs/03`：结果表回填 + 新增 §5.1（board_test_top 的自校准对策）；
   索引表 `clk_gen` 修正为 11 条、`game_fsm` 修正为 19 条。
 
+**Review（全库审查，用户要求）**
+- ⭐ **修复 `encoding.py scan-bad` 的崩溃**：它按 UTF-8 硬读 `rtl/*.vhd`，
+  而文件在 `encoding.py gbk` 之后是 GBK（预期状态）→ 直接 UnicodeDecodeError。
+  改为先 `detect()` 再按实际编码解码（"unknown" 跳过并告警）。
+- `sim.py` 陈旧隔离工程的改名时间戳 `time()` → `time_ns()`（防同秒碰撞）。
+- 其余全绿：24 个 Python 文件编译通过；check_pins 68/68、check_ports 58 入/44 出、
+  check_svg 6 文件、verify_tiling、vwf 自检全过；RTL 铁律扫描
+  （integer range / 引脚出没 / and-or 括号 8 条疑似逐条判读）零违规。
+
 **Lesson**
 - ⭐ **"结果文件 ≠ 真相"**：本轮最大的教训是 r01~r05 全部假绿的根因不在设计、
   甚至不在 tb，而在**仿真器写回的波形文件本身失真**。判断依据是"同一份网表里
