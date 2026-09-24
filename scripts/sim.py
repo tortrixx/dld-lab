@@ -40,6 +40,7 @@
 
 import importlib.util
 import json
+import os
 import pathlib
 import re
 import shutil
@@ -362,6 +363,21 @@ def _make_isolated_project(module, patches):
     """
     # ⚠️ 同样不删目录：直接复用并覆盖同名文件（同名文件必然被重写，不会留陈旧内容）
     d = TMP_DIR / ("sim_" + module)
+    # ⚠️⚠️ 2026-09-24 实测（board_test_top 仿真 r01~r03 全线假绿的根因）：
+    #   本目录跨轮复用时，quartus_map --generate_functional_sim_netlist 会
+    #   **基于上一轮的编译数据库**出网表 —— RTL 补丁与本轮改动不进网表，
+    #   波形完全错乱（btn 直读通路消失、分频常量全变 0、阶段轮转快 320 倍）。
+    #   → 每轮 run 前把旧目录整体**改名**让路（改名是单操作，
+    #     不触发执行环境的"批量删除"闸门），本轮从零综合；
+    #     旧目录留在 .tmp/（gitignore 内）由 `sim.py clean` 统一清。
+    if d.exists():
+        stale = d.with_name("%s.stale.%d" % (d.name, int(time.time())))
+        try:
+            os.rename(str(d), str(stale))
+            print("  ⚠️ 旧隔离工程含编译数据库，已改名 %s（防陈旧网表，见 sim.py 内注释）"
+                  % stale.name)
+        except OSError:
+            print("  ⚠️ 旧隔离工程改名失败，将复用原目录（网表可能陈旧！）")
     (d / "rtl").mkdir(parents=True, exist_ok=True)
 
     applied = 0

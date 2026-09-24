@@ -367,7 +367,22 @@ def parse(path):
                     kv.get("PARENT", ""),
                 ))
             else:
-                vf.transitions[name] = _parse_node(p)
+                node = _parse_node(p)
+                if name in vf.transitions:
+                    # ⚠️ 2026-09-24 实测（board_test_top 仿真 r01~r04 全线假绿的根因）：
+                    #   长仿真会被 quartus_sim **分块**（"partitioned into
+                    #   sub-simulations"），每个输出信号写出**多个**
+                    #   TRANSITION_LIST 块，各块时间轴首尾相接
+                    #   （实测块1 [0, 3443ms) + 块2 [3443, 3500ms) = 3500ms）。
+                    #   此前直接覆盖 → 只剩最后一块、且被当成从 t=0 开始，
+                    #   于是断言全在分析一段错位的 57ms 尾巴。
+                    #   → 改为把同名的多块**按顺序串联**进一个父 NODE。
+                    wrapper = Node(repeat=1)
+                    wrapper.children.append(vf.transitions[name])
+                    wrapper.children.append(node)
+                    vf.transitions[name] = wrapper
+                else:
+                    vf.transitions[name] = node
 
         elif head in ("DISPLAY_LINE", "TIME_BAR"):
             _parse_kv_block(p)
