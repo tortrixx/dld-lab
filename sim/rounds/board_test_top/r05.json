@@ -1,0 +1,93 @@
+{
+  "module": "board_test_top",
+  "round": 5,
+  "timestamp": "2026-09-24 19:55:22",
+  "duration_ns": 1500000000.0,
+  "rtl_patches": [
+    [
+      "rtl/puzzle_pkg.vhd",
+      "50_000_000",
+      "16000"
+    ],
+    [
+      "rtl/board_test_top.vhd",
+      "r_sub_div = 24",
+      "r_sub_div = 0"
+    ],
+    [
+      "rtl/board_test_top.vhd",
+      "r_kp_tmr = 79",
+      "r_kp_tmr = 19"
+    ]
+  ],
+  "passed": 3,
+  "total": 13,
+  "all_pass": false,
+  "assertions": [
+    {
+      "name": "① 阶段号 1~9 全部出现在 ld[15:8]",
+      "ok": true,
+      "detail": "出现过的阶段号（按顺序）：[255, 1, 2, 3, 4, 5, 6, 7, 8, 9]"
+    },
+    {
+      "name": "② 初始态（sw7=0, btn=1）：显示器件全灭、ld 全亮（BTN0 直读通路）",
+      "ok": true,
+      "detail": "seg=0 cat=255 dot_row=255 dot_colr=0 dot_colg=0 buzz=0 ld=65535"
+    },
+    {
+      "name": "③ 阶段 1：ld[15:8]==1，ld[7:0] 为 0x00 或 0xFF（1Hz 闪烁）",
+      "ok": true,
+      "detail": "阶段 1 内 ld[7:0] 采样值：[0]"
+    },
+    {
+      "name": "④ 阶段 2：逐行红（dot_colr=0xFF, dot_colg=0, 行号覆盖 0~7）",
+      "ok": false,
+      "detail": "行号集合=[], active 状态数=0, colr/cg 正确=True"
+    },
+    {
+      "name": "⑤ 阶段 3：逐列红（dot_colr 覆盖 0x01~0x80, dot_colg=0）",
+      "ok": false,
+      "detail": "列掩码集合=[], active 状态数=0, cg=0=True"
+    },
+    {
+      "name": "⑥ 阶段 4：逐列绿（dot_colg 覆盖 0x01~0x80, dot_colr=0）",
+      "ok": false,
+      "detail": "列掩码集合=[], active 状态数=1, cr=0=False"
+    },
+    {
+      "name": "⑦ 阶段 5：数码管逐位显示 8（seg 有非零值，cat 扫描且不全灭）",
+      "ok": false,
+      "detail": "seg 集合=['0x66'], cat 集合=['0x7F']"
+    },
+    {
+      "name": "⑧ 阶段 6：数码管显示 8~1（seg 出现多种非零段码，cat 扫描）",
+      "ok": false,
+      "detail": "非零 seg 种类=0, cat 集合=['0xFD']"
+    },
+    {
+      "name": "⑨ 阶段 7：键盘扫描，无键超时（缩放后 200 ms），ld=0，kp_col 在扫描",
+      "ok": false,
+      "detail": "窗口长度=1 ms（期望 200），ld 集合=['0x0000']，kp_col 扫描=True"
+    },
+    {
+      "name": "⑩ 阶段 8：蜂鸣器振荡（500 Hz / 2 kHz），窗口内翻转 >=10 次",
+      "ok": false,
+      "detail": "阶段 8 窗口 0 ms 内 buzz 翻转 0 次"
+    },
+    {
+      "name": "⑪ 阶段 9：全屏黄（dot_colr=0xFF, dot_colg=0xFF，行覆盖 0~7）",
+      "ok": false,
+      "detail": "active 状态数=0, 行号集合=[], 颜色正确=True"
+    },
+    {
+      "name": "⑫ BTN0 复位：按下时 ld=0xFFFF，松开后 15 ms 内回到阶段 1",
+      "ok": false,
+      "detail": "按下时 ld=65535，松开后+15ms ld=2306"
+    },
+    {
+      "name": "⑬ 子步时长：仿真 5 ms × 25.00 = 真实 120 ms",
+      "ok": false,
+      "detail": "真实板上每步约 120 ms"
+    }
+  ]
+}

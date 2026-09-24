@@ -1,0 +1,93 @@
+{
+  "module": "board_test_top",
+  "round": 8,
+  "timestamp": "2026-09-24 20:22:54",
+  "duration_ns": 1500000000.0,
+  "rtl_patches": [
+    [
+      "rtl/puzzle_pkg.vhd",
+      "50_000_000",
+      "16000"
+    ],
+    [
+      "rtl/board_test_top.vhd",
+      "r_sub_div = 24",
+      "r_sub_div = 0"
+    ]
+  ],
+  "passed": 13,
+  "total": 14,
+  "all_pass": false,
+  "assertions": [
+    {
+      "name": "⓪ 自校准：实测子步周期 T_subp = 0.062 ms（1.0 clk）",
+      "ok": true,
+      "detail": "绝对速率由 clk_gen 单模块仿真背书（sim/rounds/clk_gen/r04，13/13），见 ERR-0042"
+    },
+    {
+      "name": "① 阶段号 1~9 全部出现在轮播中",
+      "ok": true,
+      "detail": "出现过的阶段号（按首现顺序）：[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 255]"
+    },
+    {
+      "name": "② 初始态（sw7=0, btn=1）：显示器件全灭、ld 全亮（BTN0 直读通路）",
+      "ok": true,
+      "detail": "seg=0 cat=255 dot_row=255 dot_colr=0 dot_colg=0 buzz=0 ld=65535"
+    },
+    {
+      "name": "③ 阶段 1：ld[7:0] = 1Hz 方波（窗口内恒定、窗口间 0x00/0xFF）",
+      "ok": true,
+      "detail": "各阶段 1 窗口中点的 ld[7:0] 取值：[0, 255]"
+    },
+    {
+      "name": "④ 阶段 2：逐行红（颜色/掩码正确，出现过的行全部合法）",
+      "ok": true,
+      "detail": "行号集合=[2], active 采样数=140, colr/cg 正确=True"
+    },
+    {
+      "name": "⑤ 阶段 3：逐列红（颜色/掩码正确，≥2 列出现）",
+      "ok": true,
+      "detail": "列掩码集合=['0x04', '0x08'], active 采样数=552"
+    },
+    {
+      "name": "⑥ 阶段 4：逐列绿（颜色/掩码正确，≥2 列出现）",
+      "ok": true,
+      "detail": "列掩码集合=['0x04', '0x08'], active 采样数=551"
+    },
+    {
+      "name": "⑦ 阶段 5：数码管逐位显示 8（seg 出现 0x7F，cat 出现非 0xFF 位选）",
+      "ok": false,
+      "detail": "seg 集合=['0x00'], cat 集合=['0x7F', '0xEF', '0xF7', '0xFE']"
+    },
+    {
+      "name": "⑧ 阶段 6：数码管显示 8~1（seg 出现 ≥2 种非零段码）",
+      "ok": true,
+      "detail": "非零 seg 种类=2: ['0x07', '0x4F']"
+    },
+    {
+      "name": "⑨ 阶段 7：ld=0（键号独热顶替）、kp_col 在扫描、时长 = 10 × 阶段 2（80:8）",
+      "ok": true,
+      "detail": "时长比=10.00（期望 10）、ld 集合=['0x0000']、kp_col 扫描=True"
+    },
+    {
+      "name": "⑩ 阶段 8：蜂鸣器振荡（500 Hz / 2 kHz），窗口内翻转 >=10 次",
+      "ok": true,
+      "detail": "全部阶段 8 窗口内 buzz 翻转 271 次"
+    },
+    {
+      "name": "⑪ 阶段 9：全屏黄（颜色正确，≥2 行出现；混叠同 ④）",
+      "ok": true,
+      "detail": "行号集合=[2, 6], active 采样数=544, 颜色正确=True"
+    },
+    {
+      "name": "⑫ BTN0 复位：按下时 ld=0xFFFF，松开后回到阶段 1",
+      "ok": true,
+      "detail": "按下时 ld=65535，松开后首个阶段 1 窗口=1200.000 ms（起点 ld=256）"
+    },
+    {
+      "name": "⑬ 子步匀速：阶段 1~6/8/9 时长均为 8 × T_subp",
+      "ok": true,
+      "detail": "各阶段时长（子步数）：s2=8.0 s3=8.0 s4=8.0 s5=8.0 s6=8.0 s8=8.0 s9=8.0（阶段 7 = 80.0 子步，应为 80）"
+    }
+  ]
+}
