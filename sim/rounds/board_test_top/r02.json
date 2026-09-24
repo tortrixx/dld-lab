@@ -1,0 +1,93 @@
+{
+  "module": "board_test_top",
+  "round": 2,
+  "timestamp": "2026-09-24 18:24:49",
+  "duration_ns": 3500000000.0,
+  "rtl_patches": [
+    [
+      "rtl/puzzle_pkg.vhd",
+      "50_000_000",
+      "16000"
+    ],
+    [
+      "rtl/board_test_top.vhd",
+      "integer range 0 to 24",
+      "integer range 0 to 1"
+    ],
+    [
+      "rtl/board_test_top.vhd",
+      "r_sub_div = 24",
+      "r_sub_div = 1"
+    ]
+  ],
+  "passed": 7,
+  "total": 13,
+  "all_pass": false,
+  "assertions": [
+    {
+      "name": "① 阶段号 1~9 全部出现在 ld[15:8]",
+      "ok": false,
+      "detail": "出现过的阶段号（按顺序）：[0, 8, 9, 1, 2, 3, 4, 5, 6]"
+    },
+    {
+      "name": "② 初始态（sw7=0, btn=1）：显示器件全灭、ld 全亮（BTN0 直读通路）",
+      "ok": false,
+      "detail": "seg=0 cat=254 dot_row=255 dot_colr=0 dot_colg=0 buzz=0 ld=0"
+    },
+    {
+      "name": "③ 阶段 1：ld[15:8]==1，ld[7:0] 为 0x00 或 0xFF（1Hz 闪烁方波）",
+      "ok": true,
+      "detail": "阶段 1 内 ld[7:0] 采样值：[255]"
+    },
+    {
+      "name": "④ 阶段 2：逐行红（上→下，第 k 行 0xFF，其余 0）",
+      "ok": false,
+      "detail": "row0: 0000000000000000 期望 00000000000000FF; row1: 0000000000000000 期望 000000000000FF00; row2: 0000000000000000 期望 0000000000FF0000; row3: 0000000000000000 期望 00000000FF000000"
+    },
+    {
+      "name": "⑤ 阶段 3：逐列红（左→右，第 k 列全 1），s_px_green=0",
+      "ok": true,
+      "detail": "全部吻合"
+    },
+    {
+      "name": "⑥ 阶段 4：逐列绿（左→右，第 k 列全 1），s_px_red=0",
+      "ok": true,
+      "detail": "全部吻合"
+    },
+    {
+      "name": "⑦ 阶段 5：数码管逐位显示 8（s_disp_val=0x88888888，blank 逐位 0）",
+      "ok": true,
+      "detail": "全部吻合"
+    },
+    {
+      "name": "⑧ 阶段 6：数码管显示 8 7 6 5 4 3 2 1（s_disp_val=0x87654321，blank=0）",
+      "ok": true,
+      "detail": "全部吻合"
+    },
+    {
+      "name": "⑨ 阶段 7：键盘扫描，无键时超时约 1.6 s，s_ld=0，kp_col 在扫描",
+      "ok": false,
+      "detail": "窗口长度=15 ms（期望 1600），s_ld 全零=True，kp_col 扫描=True"
+    },
+    {
+      "name": "⑩ 阶段 8：蜂鸣器振荡（500 Hz / 2 kHz），窗口内翻转 >=50 次",
+      "ok": false,
+      "detail": "阶段 8 窗口 0 ms 内 s_buzz 翻转 0 次"
+    },
+    {
+      "name": "⑪ 阶段 9：全屏黄（s_px_red=全 1, s_px_green=全 1）",
+      "ok": true,
+      "detail": "全部吻合"
+    },
+    {
+      "name": "⑫ BTN0 复位：按下时 ld=0xFFFF，松开后回到阶段 1",
+      "ok": false,
+      "detail": "按下时 ld=0，松开后 ld=0"
+    },
+    {
+      "name": "⑬ 子步时长：仿真 19 ms × 12.5 = 真实 232 ms",
+      "ok": true,
+      "detail": "真实板上每步约 232 ms"
+    }
+  ]
+}

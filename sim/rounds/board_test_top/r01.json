@@ -1,0 +1,58 @@
+{
+  "module": "board_test_top",
+  "round": 1,
+  "timestamp": "2026-09-24 18:17:48",
+  "duration_ns": 800000000.0,
+  "rtl_patches": [
+    [
+      "rtl/puzzle_pkg.vhd",
+      "50_000_000",
+      "16000"
+    ],
+    [
+      "rtl/board_test_top.vhd",
+      "integer range 0 to 24",
+      "integer range 0 to 1"
+    ],
+    [
+      "rtl/board_test_top.vhd",
+      "r_sub_div = 24",
+      "r_sub_div = 1"
+    ]
+  ],
+  "passed": 3,
+  "total": 6,
+  "all_pass": false,
+  "assertions": [
+    {
+      "name": "① 从 ld[15:8] 读到阶段号时间线，且阶段 1~5 都出现过",
+      "ok": true,
+      "detail": "出现过的阶段号（按顺序）：[1, 2, 3, 4, 5, 6, 0, 8, 9]"
+    },
+    {
+      "name": "② 阶段 2 = 逐行：行号按 0→7 依次出现，每次整行点亮（colr=0xFF、colg=0）",
+      "ok": false,
+      "detail": "行号序列 = [7, 0, 0, 1, 1, 2, 2, 3, 3, 6, 7, 2, 4, 5, 6, 7, 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7, 2, 3] ；每行 colr = ['0xFF', '0x04', '0x08', '0x40', '0x80', '0x00', '0x00', '0x00']"
+    },
+    {
+      "name": "③ 阶段 3 = 逐列红：列掩码按 0x01→0x80 依次出现，colg 恒为 0",
+      "ok": false,
+      "detail": "列掩码序列 = ['0xFF', '0x04', '0x08', '0x40', '0x80', '0xFF', '0xFF', '0xFF', '0x01', '0x01', '0x01', '0x01', '0x01', '0x01', '0x01', '0x01', '0x04', '0x08', '0x40', '0x80', '0xFF', '0xFF']"
+    },
+    {
+      "name": "④ 阶段 4 = 逐列绿：列掩码按 0x01→0x80 依次出现，colr 恒为 0",
+      "ok": false,
+      "detail": "列掩码序列 = ['0x04', '0x08', '0x40', '0x80', '0xFF', '0xFF', '0x04', '0x08', '0x40', '0x80', '0xFF', '0xFF']"
+    },
+    {
+      "name": "⑤ 子步时长：仿真 19 ms × 缩放 12.5 = 真实 232 ms/步（4.3 行/秒）",
+      "ok": true,
+      "detail": "真实板上每行/每列只停 232 ms"
+    },
+    {
+      "name": "⑥ 阶段 1：ld[15:8]==1，ld[7:0] 在 0x00 / 0xFF 之间翻转（8 灯齐闪）",
+      "ok": true,
+      "detail": "阶段 1 内 ld[7:0] 出现过的值：['0x00', '0xFF']"
+    }
+  ]
+}
